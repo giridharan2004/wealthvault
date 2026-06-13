@@ -1,0 +1,47 @@
+Here's a summary of everything fixed so far:
+
+---
+
+## WealthVault — What We Fixed
+
+### 1. Backend 500 Errors (Root Cause)
+- **Problem:** Every API request returned 500 with 0ms response time
+- **Cause:** `auth.go` was calling `app.Auth()` on every single request instead of once at startup — it was failing silently
+- **Fix:** Moved auth client initialization to `main.go` startup, passed `*auth.Client` directly into the middleware
+
+### 2. Firebase Key BOM Corruption
+- **Problem:** Even after fixing auth middleware, `firebaseApp.Auth()` failed with `invalid character 'ï'`
+- **Cause:** Both `secrets/firebase-key.json` and `firebase/firebase-admin.json` had a UTF-8 BOM (invisible character) at the start, corrupting JSON parsing
+- **Fix:** Stripped the BOM using Python's `utf-8-sig` codec
+
+### 3. Duplicate Firebase Initialization
+- **Problem:** `portfolio.go` was creating its own separate Firebase app instead of reusing the one from `main.go`
+- **Fix:** Replaced `sync.Mutex` pattern with `sync.Once` so Firestore client initializes exactly once and is reused
+
+### 4. Stock Current Price Showing ₹0
+- **Problem:** `AddAsset` was saving `currentValue`, `returns`, `returnsPc` all as 0 because no live price was fetched at save time
+- **Fix:** Added `fetchCurrentPrice()` in `portfolio.go` that calls Yahoo Finance when saving a stock asset
+
+### 5. Yahoo Finance Blocking Requests
+- **Problem:** Symbol validation showed "not found" even for valid symbols like RELIANCE
+- **Cause:** Yahoo Finance blocks Go's default `http.Get` because it sends no `User-Agent` header
+- **Fix:** Switched to `http.NewRequest` with a browser User-Agent header in both `stocks.go` and `portfolio.go`
+
+### 6. Symbol Validation in Frontend
+- **Problem:** No validation — users could type typos like "RELAIANCE" and it would save
+- **Fix:** Added `onblur` validation on the symbol field that hits `/api/stocks/price/:symbol`, shows green/red border, displays live price, and auto-fills company name from Yahoo Finance
+
+---
+
+### Current State
+- ✅ Auth middleware working
+- ✅ Firestore read/write working
+- ✅ Add stock saves with live price, returns, returnsPc
+- ✅ Symbol validation with live price preview
+- 🔲 Existing bad data (RELAIANCE with ₹0) still in Firestore — delete it from the UI
+
+---
+
+### Still To Do (Stocks)
+- Refresh prices on portfolio load (currently prices are snapshot at save time)
+- BSE fallback (currently only tries `.NS`, not `.BO`)

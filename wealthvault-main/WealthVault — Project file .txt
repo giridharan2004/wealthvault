@@ -1,0 +1,196 @@
+WealthVault — Project Bible
+Stack
+Frontend  → SvelteKit + TypeScript + Tailwind (port 5173)
+API       → Go + Gin (port 8080)
+Engine    → Rust (financial calculations)
+Database  → Firebase Firestore
+Auth      → Firebase Authentication (Google Sign-In)
+
+Folder Structure
+C:\Users\giri4\OneDrive\Desktop\wealthvault\
+│
+├── .gitignore
+│
+├── frontend/                          ← SvelteKit app
+│   ├── .env                           ← Firebase config keys (NEVER commit)
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── svelte.config.js
+│   ├── vite.config.ts
+│   ├── tailwind.config.js
+│   │
+│   └── src/
+│       ├── app.html                   ← HTML shell
+│       ├── app.d.ts
+│       │
+│       ├── lib/
+│       │   ├── firebase.ts            ← Firebase client init (auth + db)
+│       │   ├── index.ts
+│       │   │
+│       │   └── stores/
+│       │       ├── auth.ts            ← User session, Google sign-in/out
+│       │       └── portfolio.ts       ← Portfolio data, API calls
+│       │
+│       └── routes/
+│           ├── +layout.svelte         ← Auth guard + navbar
+│           ├── +page.svelte           ← Redirects to /dashboard
+│           │
+│           ├── login/
+│           │   └── +page.svelte       ← Google sign-in page
+│           │
+│           └── dashboard/
+│               └── +page.svelte       ← Main portfolio dashboard
+│
+├── api/                               ← Go REST API
+│   ├── go.mod
+│   ├── main.go                        ← Server entry, all routes registered
+│   │
+│   ├── config/
+│   │   └── firebase.go                ← Firebase Admin SDK init
+│   │
+│   ├── middleware/
+│   │   └── auth.go                    ← Firebase JWT verification
+│   │
+│   ├── models/
+│   │   └── asset.go                   ← Asset, Portfolio, Metadata structs
+│   │
+│   └── handlers/
+│       ├── portfolio.go               ← GET/POST/PUT/DELETE assets
+│       ├── stocks.go                  ← Live NSE price via Yahoo Finance
+│       ├── gold.go                    ← Live gold rate via GoldAPI
+│       └── mutualfunds.go             ← Live NAV via mfapi.in (free)
+│
+├── engine/                            ← Rust calculation core
+│   ├── Cargo.toml
+│   └── src/
+│       ├── lib.rs                     ← Exports all modules
+│       ├── portfolio.rs               ← XIRR, CAGR, absolute returns, FD
+│       └── tax.rs                     ← India LTCG/STCG tax (Budget 2024)
+│
+├── firebase/
+│   └── firestore.rules                ← Security rules (uid-scoped)
+│
+└── secrets/
+    └── firebase-key.json              ← Service account key (NEVER commit)
+
+How It Works — Data Flow
+User opens browser
+       ↓
+SvelteKit frontend (localhost:5173)
+       ↓
++layout.svelte checks auth store
+       ↓
+Not logged in? → /login page → Google Sign-In popup → Firebase Auth
+       ↓
+Logged in? → Firebase gives ID token (JWT)
+       ↓
+Dashboard loads → calls fetchPortfolio()
+       ↓
+portfolio.ts sends GET /api/portfolio with Bearer token in header
+       ↓
+Go API receives request → middleware/auth.go verifies token with Firebase Admin
+       ↓
+Valid? → handlers/portfolio.go reads Firestore → returns assets
+       ↓
+Portfolio store updates → Svelte reactivity → UI re-renders
+
+API Routes
+GET    /health                         → health check (public)
+
+GET    /api/portfolio                  → get all assets (auth required)
+POST   /api/portfolio/asset            → add new asset
+PUT    /api/portfolio/asset/:id        → update asset
+DELETE /api/portfolio/asset/:id        → delete asset
+
+GET    /api/stocks/price/:symbol       → live NSE price (e.g. RELIANCE)
+GET    /api/mutualfunds/nav/:code      → live MF NAV (e.g. 120503)
+GET    /api/gold/rate                  → live gold rate per gram INR
+
+Firestore Data Structure
+users/
+  {uid}/
+    assets/
+      {assetId}/
+        type: "STOCK" | "GOLD" | "MUTUAL_FUND" | "PROPERTY" | "FD" | "NPS"
+        name: string
+        symbol: string
+        quantity: number
+        buyPrice: number
+        buyDate: string (YYYY-MM-DD)
+        currentPrice: number
+        currentValue: number
+        returns: number
+        returnsPc: number
+        metadata: {
+          // Gold
+          purity?: string
+          grams?: number
+          // Property
+          address?: string
+          areaSqFt?: number
+          rentalYield?: number
+          // FD
+          bankName?: string
+          interestRate?: number
+          maturityDate?: string
+          maturityAmount?: number
+          // NPS
+          tier?: string
+          fundManager?: string
+        }
+
+Environment Variables
+frontend/.env (SvelteKit — prefix VITE_):
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_API_URL=http://localhost:8080
+api/ environment (Go — set before running):
+FIREBASE_CREDENTIALS=../secrets/firebase-key.json
+GOLD_API_KEY=your_goldapi_key
+PORT=8080
+
+Run Commands
+cmd# Frontend
+cd C:\Users\giri4\OneDrive\Desktop\wealthvault\frontend
+pnpm run dev
+
+# Go API
+cd C:\Users\giri4\OneDrive\Desktop\wealthvault\api
+go run main.go
+
+# Rust engine (build only)
+cd C:\Users\giri4\OneDrive\Desktop\wealthvault\engine
+cargo build --release
+
+Security Model
+Layer 1 → Firebase Auth       User must be logged in
+Layer 2 → Firestore Rules      Users can only read/write their own uid
+Layer 3 → Go JWT middleware    Every API call verifies Firebase token
+Layer 4 → Go input validation  All request bodies validated before DB write
+Layer 5 → Rust                 Memory-safe, no null pointers in calculations
+Layer 6 → .gitignore           secrets/ and .env never committed
+
+Rust Calculations Available
+rustcagr(buy_price, current_price, days)          → CAGR %
+absolute_returns(buy_price, current_price)     → returns %
+xirr(cashflows)                               → XIRR % (for SIP)
+allocation_percent(asset_value, total_value)   → allocation %
+fd_maturity(principal, rate, months)           → maturity amount
+
+calculate_tax(asset_class, buy, sell, qty, days) → TaxResult {
+  gain, is_ltcg, tax_amount, tax_rate, holding_days
+}
+
+Next Steps (what's pending)
+✅ Done  → All foundation files created
+⏳ TODO  → Firebase project setup (get API keys)
+⏳ TODO  → Fill frontend/.env with real keys
+⏳ TODO  → Put firebase-key.json in secrets/
+⏳ TODO  → Run Go API: go mod tidy + go run main.go
+⏳ TODO  → Test full login flow in browser
+⏳ TODO  → Add stock/gold/MF pages
+⏳ TODO  → Connect Rust engine to Go API

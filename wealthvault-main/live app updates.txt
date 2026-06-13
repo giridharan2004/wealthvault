@@ -1,0 +1,2 @@
+cd D:\wealthvault\wealthvault-main\frontend
+.\deploy.bat

@@ -1,0 +1,31 @@
+Setup
+
+* Installed Node.js, Go, Rust, pnpm, Firebase CLI
+* Created project folder structure at `D:\wealthvault\wealthvault-main`
+Frontend (SvelteKit)
+
+* Created SvelteKit app with TypeScript + Tailwind
+* Built pages: login, dashboard, stocks, gold, mutual funds, property, family
+* Fixed Svelte 5 runes mode errors (`$:` → `$effect`, `let` → `$state`)
+Firebase (no backend)
+
+* Replaced Go API calls with direct Firestore reads/writes
+* `portfolio.ts` — saves/loads assets directly to Firestore
+* `family.ts` — creates/joins families directly in Firestore
+* Removed all `localhost:8080` references from every file
+* Set Firestore security rules to allow authenticated users
+Deployment
+
+* Installed `@sveltejs/adapter-static` for Firebase Hosting
+* Updated `vite.config.ts` to use static adapter
+* Ran `firebase init hosting` → public dir = `build`, SPA = yes
+* Deployed with `firebase deploy --only hosting`
+* Live at https://family-stocks-9435a.web.app
+To update the live site anytime:
+powershell
+
+```powershell
+cd D:\wealthvault\wealthvault-main\frontend
+pnpm run build
+firebase deploy --only hosting  continue from here 
+```

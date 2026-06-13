@@ -1,0 +1,8 @@
+node_modules/ 
+.env 
+dist/ 
+.svelte-kit/ 
+secrets/
+firebase/firebase-admin.json
+engine/target/
+api/tmp/

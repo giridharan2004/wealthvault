@@ -1,0 +1,84 @@
+WealthVault Project Structure
+==============================
+
+D:\wealthvault\wealthvault-main\
+│
+├── day 1 .txt
+├── WealthVault — Project file .txt
+├── wealthvault_project_notepad.html
+│
+├── .vscode\
+│   └── settings.json
+│
+├── api\                                  ← Go backend
+│   ├── main.go
+│   ├── go.mod
+│   ├── go.sum
+│   ├── config\
+│   │   └── firebase.go
+│   ├── handlers\
+│   │   ├── portfolio.go
+│   │   ├── stocks.go
+│   │   ├── mutualfunds.go
+│   │   └── gold.go
+│   ├── middleware\
+│   │   └── auth.go
+│   └── models\
+│       └── asset.go
+│
+├── engine\                               ← Rust calculation engine
+│   ├── Cargo.toml
+│   ├── Cargo.lock
+│   └── src\
+│       ├── lib.rs
+│       ├── portfolio.rs
+│       ├── tax.rs
+│       └── corgo.toml
+│
+├── firebase\                             ← Firebase config
+│   ├── firebase-admin.json
+│   └── firestore.rules
+│
+├── secrets\                              ← Service account key (never commit)
+│   └── firebase-key.json
+│
+└── frontend\                             ← SvelteKit frontend
+    ├── .env
+    ├── package.json
+    ├── vite.config.ts
+    ├── tsconfig.json
+    ├── pnpm-lock.yaml
+    ├── static\
+    │   └── robots.txt
+    └── src\
+        ├── app.html
+        ├── app.css
+        ├── app.d.ts
+        ├── lib\
+        │   ├── firebase.ts
+        │   ├── index.ts
+        │   └── stores\
+        │       ├── auth.ts
+        │       └── portfolio.ts
+        └── routes\
+            ├── +layout.svelte
+            ├── +page.svelte            ← stocks page (currently active)
+            ├── layout.css
+            ├── dashboard\
+            │   └── +page.svelte
+            ├── stocks\
+            │   └── +page.svelte
+            ├── mutualfunds\
+            │   └── +page.svelte
+            ├── gold\
+            │   └── +page.svelte
+            ├── property\
+            │   └── +page.svelte
+            └── login\
+                └── +page.svelte
+
+==============================
+To start the project:
+  Backend:  cd api  →  air
+  Frontend: cd frontend  →  pnpm run dev
+==============================
