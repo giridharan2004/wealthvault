@@ -1,0 +1,197 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.pad { padding: 1rem 0; }
+.tabs { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+.tab { padding: 6px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); font-size: 13px; cursor: pointer; background: transparent; color: var(--color-text-secondary); transition: all 0.15s; }
+.tab.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+.section { display: none; }
+.section.active { display: block; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 12px; }
+.card h3 { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.row { display: flex; gap: 8px; align-items: baseline; padding: 5px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+.row:last-child { border-bottom: none; }
+.lbl { color: var(--color-text-secondary); min-width: 110px; flex-shrink: 0; }
+.val { color: var(--color-text-primary); font-family: var(--font-mono); font-size: 12px; }
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 100px; font-weight: 500; margin-right: 4px; margin-bottom: 2px; }
+.go { background: #E6F1FB; color: #0C447C; }
+.rust { background: #FAECE7; color: #993C1D; }
+.svelte { background: #FAECE7; color: #712B13; }
+.fire { background: #FAEEDA; color: #854F0B; }
+.green { background: #EAF3DE; color: #3B6D11; }
+.gray { background: #F1EFE8; color: #5F5E5A; }
+.route-row { display: grid; grid-template-columns: 60px 1fr 1fr; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; align-items: start; }
+.route-row:last-child { border-bottom: none; }
+.method { font-family: var(--font-mono); font-weight: 500; font-size: 11px; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+.get { background: #EAF3DE; color: #3B6D11; }
+.post { background: #E6F1FB; color: #185FA5; }
+.put { background: #FAEEDA; color: #854F0B; }
+.del { background: #FCEBEB; color: #A32D2D; }
+.path { font-family: var(--font-mono); color: var(--color-text-primary); font-size: 12px; }
+.desc { color: var(--color-text-secondary); font-size: 12px; }
+.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.field { font-size: 12px; font-family: var(--font-mono); background: var(--color-background-secondary); padding: 4px 8px; border-radius: 4px; color: var(--color-text-primary); }
+.field .type { color: var(--color-text-secondary); font-size: 11px; }
+.page-row { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+.page-row:last-child { border-bottom: none; }
+.status-done { color: #3B6D11; font-size: 11px; }
+.status-todo { color: #854F0B; font-size: 11px; }
+</style>
+
+<div class="pad">
+  <h2 class="sr-only">WealthVault project reference notepad</h2>
+  <div style="margin-bottom:1rem;">
+    <div style="font-size:18px; font-weight:500; color:var(--color-text-primary);">WealthVault</div>
+    <div style="font-size:13px; color:var(--color-text-secondary);">Project reference — stack, routes, models, pages</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="show('stack')">Stack</button>
+    <button class="tab" onclick="show('routes')">API routes</button>
+    <button class="tab" onclick="show('models')">Data models</button>
+    <button class="tab" onclick="show('pages')">Frontend pages</button>
+    <button class="tab" onclick="show('notes')">Notes</button>
+  </div>
+
+  <!-- STACK -->
+  <div class="section active" id="s-stack">
+    <div class="card">
+      <h3>Folders</h3>
+      <div class="row"><span class="lbl">Root</span><span class="val">wealthvault/</span></div>
+      <div class="row"><span class="lbl">api/</span><span class="val"><span class="badge go">Go</span> Gin router · Firebase auth middleware · Firestore</span></div>
+      <div class="row"><span class="lbl">engine/</span><span class="val"><span class="badge rust">Rust</span> Portfolio calc · Tax logic (lib.rs, portfolio.rs, tax.rs)</span></div>
+      <div class="row"><span class="lbl">firebase/</span><span class="val"><span class="badge fire">Firebase</span> firestore.rules only</span></div>
+      <div class="row"><span class="lbl">frontend/</span><span class="val"><span class="badge svelte">SvelteKit</span> Svelte 5 · Tailwind · pnpm</span></div>
+      <div class="row"><span class="lbl">secrets/</span><span class="val">firebase-key.json (service account)</span></div>
+    </div>
+    <div class="card">
+      <h3>Key config</h3>
+      <div class="row"><span class="lbl">API port</span><span class="val">8080 (default) · env PORT</span></div>
+      <div class="row"><span class="lbl">API base</span><span class="val">VITE_API_URL in frontend/.env</span></div>
+      <div class="row"><span class="lbl">Firebase creds</span><span class="val">FIREBASE_CREDENTIALS env · fallback ../secrets/firebase-key.json</span></div>
+      <div class="row"><span class="lbl">Gold API key</span><span class="val">GOLD_API_KEY env · goldapi.io · fallback ₹7200/g</span></div>
+      <div class="row"><span class="lbl">MF data</span><span class="val">mfapi.in (free, no key needed)</span></div>
+      <div class="row"><span class="lbl">Stock data</span><span class="val">Yahoo Finance · appends .NS for NSE</span></div>
+    </div>
+    <div class="card">
+      <h3>Frontend lib structure</h3>
+      <div class="row"><span class="lbl">src/lib/firebase.ts</span><span class="val">Firebase init</span></div>
+      <div class="row"><span class="lbl">stores/auth.ts</span><span class="val">idToken writable store</span></div>
+      <div class="row"><span class="lbl">stores/portfolio.ts</span><span class="val">portfolio, portfolioLoading, portfolioError · fetchPortfolio, addAsset, deleteAsset</span></div>
+    </div>
+  </div>
+
+  <!-- ROUTES -->
+  <div class="section" id="s-routes">
+    <div class="card">
+      <h3>Public</h3>
+      <div class="route-row"><span class="method get">GET</span><span class="path">/health</span><span class="desc">Status check</span></div>
+    </div>
+    <div class="card">
+      <h3>Protected — requires Firebase JWT Bearer token</h3>
+      <div class="route-row"><span class="method get">GET</span><span class="path">/api/portfolio</span><span class="desc">Full portfolio + all assets</span></div>
+      <div class="route-row"><span class="method post">POST</span><span class="path">/api/portfolio/asset</span><span class="desc">Add asset → AddAssetRequest body</span></div>
+      <div class="route-row"><span class="method put">PUT</span><span class="path">/api/portfolio/asset/:id</span><span class="desc">Update asset</span></div>
+      <div class="route-row"><span class="method del">DEL</span><span class="path">/api/portfolio/asset/:id</span><span class="desc">Delete asset</span></div>
+      <div class="route-row"><span class="method get">GET</span><span class="path">/api/stocks/price/:symbol</span><span class="desc">Yahoo Finance · returns price, change, changePc</span></div>
+      <div class="route-row"><span class="method get">GET</span><span class="path">/api/mutualfunds/nav/:code</span><span class="desc">mfapi.in · returns nav, schemeName, fundHouse, date</span></div>
+      <div class="route-row"><span class="method get">GET</span><span class="path">/api/gold/rate</span><span class="desc">goldapi.io · returns price per gram (24K INR)</span></div>
+    </div>
+  </div>
+
+  <!-- MODELS -->
+  <div class="section" id="s-models">
+    <div class="card">
+      <h3>Asset (Go model → Firestore → JSON)</h3>
+      <div class="field-grid">
+        <div class="field">id <span class="type">string</span></div>
+        <div class="field">type <span class="type">AssetType</span></div>
+        <div class="field">name <span class="type">string</span></div>
+        <div class="field">symbol <span class="type">string</span></div>
+        <div class="field">quantity <span class="type">float64</span></div>
+        <div class="field">buyPrice <span class="type">float64</span></div>
+        <div class="field">buyDate <span class="type">string</span></div>
+        <div class="field">currentPrice <span class="type">float64</span></div>
+        <div class="field">currentValue <span class="type">float64</span></div>
+        <div class="field">returns <span class="type">float64</span></div>
+        <div class="field">returnsPc <span class="type">float64</span></div>
+        <div class="field">metadata <span class="type">Metadata</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>AssetType enum</h3>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; font-size:12px; font-family:var(--font-mono);">
+        <span class="badge go">STOCK</span>
+        <span class="badge fire">GOLD</span>
+        <span class="badge green">MUTUAL_FUND</span>
+        <span class="badge rust">PROPERTY</span>
+        <span class="badge gray">FD</span>
+        <span class="badge gray">NPS</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Metadata fields (type-specific, all omitempty)</h3>
+      <div class="row"><span class="lbl">GOLD</span><span class="val">purity (string) · grams (float64)</span></div>
+      <div class="row"><span class="lbl">PROPERTY</span><span class="val">address · areaSqFt · rentalYield</span></div>
+      <div class="row"><span class="lbl">FD</span><span class="val">bankName · interestRate · maturityDate · maturityAmount</span></div>
+      <div class="row"><span class="lbl">NPS</span><span class="val">tier · fundManager</span></div>
+    </div>
+    <div class="card">
+      <h3>AddAssetRequest (POST body)</h3>
+      <div class="row"><span class="lbl">required</span><span class="val">type · name · quantity · buyPrice · buyDate</span></div>
+      <div class="row"><span class="lbl">optional</span><span class="val">symbol · metadata{}</span></div>
+    </div>
+  </div>
+
+  <!-- PAGES -->
+  <div class="section" id="s-pages">
+    <div class="card">
+      <h3>SvelteKit routes</h3>
+      <div class="page-row"><span style="min-width:130px;font-family:var(--font-mono);font-size:12px;">/login</span><span style="flex:1;font-size:13px;color:var(--color-text-secondary);">Firebase auth</span><span class="badge green status-done">done</span></div>
+      <div class="page-row"><span style="min-width:130px;font-family:var(--font-mono);font-size:12px;">/dashboard</span><span style="flex:1;font-size:13px;color:var(--color-text-secondary);">Portfolio summary, total value/returns</span><span class="badge green status-done">done</span></div>
+      <div class="page-row"><span style="min-width:130px;font-family:var(--font-mono);font-size:12px;">/stocks</span><span style="flex:1;font-size:13px;color:var(--color-text-secondary);">Add/list/delete STOCK assets. Yahoo .NS price lookup</span><span class="badge green status-done">done</span></div>
+      <div class="page-row"><span style="min-width:130px;font-family:var(--font-mono);font-size:12px;">/mutualfunds</span><span style="flex:1;font-size:13px;color:var(--color-text-secondary);">Add/list/delete MUTUAL_FUND. mfapi.in NAV lookup by scheme code</span><span class="badge fire status-todo">in progress</span></div>
+      <div class="page-row"><span style="min-width:130px;font-family:var(--font-mono);font-size:12px;">/gold</span><span style="flex:1;font-size:13px;color:var(--color-text-secondary);">Add/list/delete GOLD. Live rate from /api/gold/rate. metadata: purity, grams</span><span class="badge fire status-todo">in progress</span></div>
+      <div class="page-row"><span style="min-width:130px;font-family:var(--font-mono);font-size:12px;">/property</span><span style="flex:1;font-size:13px;color:var(--color-text-secondary);">Add/list/delete PROPERTY. metadata: address, areaSqFt, rentalYield</span><span class="badge fire status-todo">in progress</span></div>
+    </div>
+    <div class="card">
+      <h3>Shared store pattern (all pages)</h3>
+      <div class="row"><span class="lbl">Load</span><span class="val">onMount(() => fetchPortfolio())</span></div>
+      <div class="row"><span class="lbl">Filter</span><span class="val">$derived(($portfolio?.assets ?? []).filter(a => a.type === 'X'))</span></div>
+      <div class="row"><span class="lbl">Add</span><span class="val">addAsset({ type, name, symbol, quantity, buyPrice, buyDate, metadata })</span></div>
+      <div class="row"><span class="lbl">Delete</span><span class="val">deleteAsset(id)</span></div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="section" id="s-notes">
+    <div class="card">
+      <h3>Known issues / gotchas</h3>
+      <div class="row"><span class="lbl">Backend</span><span class="val">Must run separately: cd api && go run main.go</span></div>
+      <div class="row"><span class="lbl">currentValue</span><span class="val">Set by backend at write time — not recalculated on read. Needs price refresh logic.</span></div>
+      <div class="row"><span class="lbl">Stock symbol</span><span class="val">Backend appends .NS — pass bare symbol e.g. RELIANCE not RELIANCE.NS</span></div>
+      <div class="row"><span class="lbl">MF lookup</span><span class="val">Scheme code from mfapi.in — not AMFI code directly</span></div>
+      <div class="row"><span class="lbl">Gold fallback</span><span class="val">Returns ₹7200/g if GOLD_API_KEY missing or API fails</span></div>
+      <div class="row"><span class="lbl">Auth token</span><span class="val">portfolio.ts reads from idToken store (auth.ts), not localStorage</span></div>
+      <div class="row"><span class="lbl">Firestore path</span><span class="val">users/{uid}/assets/{assetId}</span></div>
+      <div class="row"><span class="lbl">Asset ID</span><span class="val">Generated as timestamp string: time.Now().Format("20060102150405")</span></div>
+    </div>
+    <div class="card">
+      <h3>Dev commands (PowerShell)</h3>
+      <div class="row"><span class="lbl">Frontend</span><span class="val">cd frontend && pnpm dev</span></div>
+      <div class="row"><span class="lbl">Backend</span><span class="val">cd api && go run main.go</span></div>
+      <div class="row"><span class="lbl">Frontend port</span><span class="val">5173 (vite default)</span></div>
+      <div class="row"><span class="lbl">Backend port</span><span class="val">8080</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
