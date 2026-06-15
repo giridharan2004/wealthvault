@@ -1,4 +1,4 @@
-﻿import { writable, get } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import {
   collection, doc, setDoc, deleteDoc,
   query, getDocs, updateDoc, getDoc
