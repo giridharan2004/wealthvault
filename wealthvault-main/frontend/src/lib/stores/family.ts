@@ -1,87 +1,75 @@
-﻿import { writable } from 'svelte/store';
-import { auth, db } from '$lib/firebase';
-import {
-  doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs
-} from 'firebase/firestore';
+import { writable, get } from 'svelte/store';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { db } from '$lib/firebase';
+import { user } from './auth';
 
 export interface FamilyMember {
   uid: string;
-  displayName: string;
-  photoURL: string;
-  role: string;
+  name: string;
+  email: string;
 }
 
 export interface Family {
-  id: string;
+  code: string;
   name: string;
-  inviteCode: string;
-  members: FamilyMember[];
+  members: string[];
+  createdBy: string;
 }
 
 export const family = writable<Family | null>(null);
-export const selectedMember = writable<FamilyMember | null>(null);
-export const familyLoading = writable(false);
+export const familyMembers = writable<FamilyMember[]>([]);
+export const familyCode = writable<string | null>(null);
 
-function getUID(): string {
-  const uid = auth.currentUser?.uid;
-  if (!uid) throw new Error('Not authenticated');
-  return uid;
-}
-
-function randomCode(): string {
+function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-export async function loadFamily(): Promise<Family | null> {
-  familyLoading.set(true);
-  try {
-    const uid = getUID();
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    const familyId = userDoc.data()?.familyId;
-    if (!familyId) { family.set(null); return null; }
-    const famDoc = await getDoc(doc(db, 'families', familyId));
-    if (!famDoc.exists()) { family.set(null); return null; }
-    const data = { id: famDoc.id, ...famDoc.data() } as Family;
-    family.set(data);
-    return data;
-  } catch (e) {
-    family.set(null);
-    return null;
-  } finally {
-    familyLoading.set(false);
+export async function createFamily(familyName: string, memberName: string): Promise<string> {
+  const currentUser = get(user);
+  if (!currentUser) throw new Error('Not logged in');
+  const code = generateCode();
+  await setDoc(doc(db, 'families', code), {
+    code, name: familyName, members: [currentUser.uid],
+    createdBy: currentUser.uid, createdAt: new Date().toISOString()
+  });
+  await setDoc(doc(db, 'users', currentUser.uid), {
+    familyCode: code, name: memberName,
+    email: currentUser.email, joinedAt: new Date().toISOString()
+  }, { merge: true });
+  familyCode.set(code);
+  return code;
+}
+
+export async function joinFamily(code: string, memberName: string): Promise<void> {
+  const currentUser = get(user);
+  if (!currentUser) throw new Error('Not logged in');
+  const familyRef = doc(db, 'families', code.toUpperCase());
+  const familySnap = await getDoc(familyRef);
+  if (!familySnap.exists()) throw new Error('Family code not found');
+  await updateDoc(familyRef, { members: arrayUnion(currentUser.uid) });
+  await setDoc(doc(db, 'users', currentUser.uid), {
+    familyCode: code.toUpperCase(), name: memberName,
+    email: currentUser.email, joinedAt: new Date().toISOString()
+  }, { merge: true });
+  familyCode.set(code.toUpperCase());
+}
+
+export async function loadFamily(): Promise<void> {
+  const currentUser = get(user);
+  if (!currentUser) return;
+  const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
+  if (!userSnap.exists() || !userSnap.data().familyCode) return;
+  const code = userSnap.data().familyCode;
+  familyCode.set(code);
+  const familySnap = await getDoc(doc(db, 'families', code));
+  if (!familySnap.exists()) return;
+  family.set(familySnap.data() as Family);
+  const members: FamilyMember[] = [];
+  for (const uid of familySnap.data().members) {
+    const memberSnap = await getDoc(doc(db, 'users', uid));
+    if (memberSnap.exists()) {
+      members.push({ uid, name: memberSnap.data().name, email: memberSnap.data().email });
+    }
   }
-}
-
-export async function createFamily(familyName: string, displayName: string, photoURL: string) {
-  const uid = getUID();
-  const familyId = Date.now().toString();
-  const inviteCode = randomCode();
-  const member: FamilyMember = { uid, displayName, photoURL, role: 'admin' };
-  const famData: Family = { id: familyId, name: familyName, inviteCode, members: [member] };
-  await setDoc(doc(db, 'families', familyId), famData);
-  await setDoc(doc(db, 'users', uid), { familyId, displayName, photoURL }, { merge: true });
-  family.set(famData);
-  return famData;
-}
-
-export async function joinFamily(inviteCode: string, displayName: string, photoURL: string) {
-  const uid = getUID();
-  const q = query(collection(db, 'families'), where('inviteCode', '==', inviteCode.toUpperCase()));
-  const snap = await getDocs(q);
-  if (snap.empty) throw new Error('Invalid invite code');
-  const famDoc = snap.docs[0];
-  const famData = famDoc.data() as Family;
-  const member: FamilyMember = { uid, displayName, photoURL, role: 'member' };
-  const updatedMembers = [...famData.members.filter(m => m.uid !== uid), member];
-  await updateDoc(doc(db, 'families', famDoc.id), { members: updatedMembers });
-  await setDoc(doc(db, 'users', uid), { familyId: famDoc.id, displayName, photoURL }, { merge: true });
-  const updated = { ...famData, id: famDoc.id, members: updatedMembers };
-  family.set(updated);
-  return updated;
-}
-
-export async function fetchMemberAssets(memberUID: string) {
-  const snap = await getDocs(collection(db, 'users', memberUID, 'assets'));
-  const assets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  return { assets };
+  familyMembers.set(members);
 }
