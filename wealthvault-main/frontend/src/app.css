@@ -1,3 +1,12 @@
-@import 'tailwindcss';
+﻿@import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+body {
+  background: #f9fafb;
+  color: #111827;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
