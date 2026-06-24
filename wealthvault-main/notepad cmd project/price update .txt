@@ -1,0 +1,2 @@
+cd D:\wealthvault\wealthvault-main\frontend
+npm run update:prices

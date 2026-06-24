@@ -1,0 +1,90 @@
+WealthVault Project Context
+============================
+ai        # generates file + opens folder
+deploy    # after fixes, build + ship
+
+
+PROJECT: WealthVault — Family Stock Portfolio Tracker
+LIVE URL: https://family-stocks-9435a.web.app
+STACK: SvelteKit 5 (Runes mode) + TypeScript + TailwindCSS + Firebase Firestore + Go backend
+
+FOLDER STRUCTURE:
+- Frontend: D:\wealthvault\wealthvault-main\frontend
+- Backend:  D:\wealthvault\wealthvault-main\api (Go + Air live reload)
+- Firebase: D:\wealthvault\wealthvault-main\firebase
+
+KEY FILES:
+- src/routes/+layout.svelte             → mobile/desktop nav, header, bottom bar
+- src/routes/stocks/+page.svelte        → main stocks page, filters, summary cards, desktop table
+- src/lib/components/StockCard.svelte   → mobile card UI (Zerodha-style, tap to expand)
+- src/lib/components/StockModals.svelte → Add/Sell/Rate/Targets modals
+- src/lib/stores/stocks.ts              → Firestore data, live price fetch, stock calculations
+- src/lib/stores/auth.ts                → Firebase auth
+- src/lib/stores/family.ts              → Family members, selectedMember
+- src/lib/stores/portfolio.ts           → Portfolio totals
+
+SVELTE VERSION: Svelte 5 Runes mode
+- Use $props() NOT export let
+- Use $state() NOT let for reactive vars
+- Use $derived() NOT $: for computed values
+- Use onclick NOT on:click
+
+MOBILE UI (StockCard.svelte):
+- Zerodha-style compact rows
+- Tap row → expands full detail grid (12 fields)
+- Action buttons: + Buy, Sell, Delete at bottom of expanded card
+- Props: stock, isOwnStocks, expandedRow, formatINR, plClass, statusClass,
+         onToggle, onBuyMore, onSell, onDelete, onRateClick, onReleaseToggle
+
+FIRESTORE STOCK FIELDS:
+- shareName, shortName, buyQty, buyAmt, buyDate
+- todaysRate, investedVal, currentVal, qtyHeld
+- stopLoss, target, status, plPercent, diffPL
+- soldQty, soldDate, soldFrequency, qtyNeedToSell
+- releaseStatus
+
+MY TERMINAL SHORTCUTS (PowerShell profile):
+- wv        → jumps to D:\wealthvault\wealthvault-main\frontend
+- wvapi     → jumps to D:\wealthvault\wealthvault-main\api
+- wvsrc     → jumps to frontend\src
+- aipack    → bundles all code into repomix-output.txt for AI upload
+- devstart  → starts Go backend (air) + Vite frontend in separate windows
+- deploy    → full auto deploy (pnpm install + build + firebase + opens browser)
+
+DEPLOY PROCESS (fully automatic):
+- Just run: deploy
+- It does: pnpm install → pnpm run build → firebase deploy → opens browser
+- If any step fails it stops and shows which step broke
+- No need to cd anywhere, deploy handles folder switching
+- Live site opens automatically after success
+
+WORKFLOW:
+1. Make changes in VS Code
+2. Run: deploy
+3. Done — site is live
+
+FOR AI HELP:
+1. Run: aipack
+2. Upload repomix-output.txt to AI chat
+3. Paste this prompt first
+4. Describe the problem
+
+KNOWN ISSUES FIXED:
+- StockCard uses $props() runes (Svelte 5)
+- StockModals labels changed from <label> to <p> (a11y fix)
+- Bottom nav pb reduced so cards don't hide behind it
+- Main content pb-24 so last card scrolls clear of nav
+- Layout pt-2 on mobile header (was pt-10, too tall)
+
+WHEN I SHARE CODE:
+- I will upload repomix-output.txt which has all 70 files
+- Make changes using PowerShell Set-Content commands
+- I run them directly in terminal and paste back the output
+
+PLEASE ALWAYS:
+- Use Svelte 5 runes syntax ($props, $state, $derived, onclick)
+- Give PowerShell commands to apply file changes
+- Target exact paths under D:\wealthvault\wealthvault-main\
+- Give one PowerShell command per file
+- After changes remind me to run: deploy
+- If build fails, fix errors before asking me to deploy

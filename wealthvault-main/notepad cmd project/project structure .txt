@@ -1,6 +1,3 @@
-WealthVault Project Structure
-==============================
-
 D:\wealthvault\wealthvault-main\
 │
 ├── day 1 .txt
@@ -10,7 +7,7 @@ D:\wealthvault\wealthvault-main\
 ├── .vscode\
 │   └── settings.json
 │
-├── api\                                  ← Go backend
+├── api\                                  ← Go backend (unchanged)
 │   ├── main.go
 │   ├── go.mod
 │   ├── go.sum
@@ -26,7 +23,7 @@ D:\wealthvault\wealthvault-main\
 │   └── models\
 │       └── asset.go
 │
-├── engine\                               ← Rust calculation engine
+├── engine\                               ← Rust engine (unused)
 │   ├── Cargo.toml
 │   ├── Cargo.lock
 │   └── src\
@@ -35,45 +32,48 @@ D:\wealthvault\wealthvault-main\
 │       ├── tax.rs
 │       └── corgo.toml
 │
-├── firebase\                             ← Firebase config
+├── firebase\
 │   ├── firebase-admin.json
-│   └── firestore.rules
+│   └── firestore.rules                  ← updated: simplified allow update rule
 │
-├── secrets\                              ← Service account key (never commit)
+├── secrets\
 │   └── firebase-key.json
 │
-└── frontend\                             ← SvelteKit frontend
+└── frontend\
     ├── .env
     ├── package.json
     ├── vite.config.ts
     ├── tsconfig.json
     ├── pnpm-lock.yaml
+    ├── firebase.json                     ← updated: cache headers added
     ├── static\
     │   └── robots.txt
     └── src\
         ├── app.html
-        ├── app.css
+        ├── app.css                       ← updated: light theme base (#f9fafb)
         ├── app.d.ts
         ├── lib\
         │   ├── firebase.ts
         │   ├── index.ts
+        │   ├── components\               ← NEW folder
+        │   │   ├── StockCard.svelte      ← NEW: dark mobile card UI
+        │   │   └── StockModals.svelte    ← NEW: all 4 modals extracted
         │   └── stores\
         │       ├── auth.ts
-        │       └── portfolio.ts
+        │       ├── portfolio.ts
+        │       ├── stocks.ts             ← updated: uid param, formula fix
+        │       └── family.ts             ← updated: selectedMember, correct schema
         └── routes\
-            ├── +layout.svelte
-            ├── +page.svelte            ← stocks page (currently active)
+            ├── +layout.svelte            ← updated: light theme, top+bottom nav
+            ├── +page.svelte
             ├── layout.css
             ├── dashboard\
-            │   └── +page.svelte
+            │   └── +page.svelte          ← updated: light theme (⚠ still shows ₹0)
             ├── stocks\
-            │   └── +page.svelte
-            ├── mutualfunds\
-            │   └── +page.svelte
-            ├── gold\
-            │   └── +page.svelte
-            ├── property\
-            │   └── +page.svelte
+            │   └── +page.svelte          ← updated: split, imports components
+            ├── mutualfunds\              ← DELETED
+            ├── gold\                     ← DELETED
+            ├── property\                 ← DELETED
             └── login\
                 └── +page.svelte
 
@@ -81,4 +81,9 @@ D:\wealthvault\wealthvault-main\
 To start the project:
   Backend:  cd api  →  air
   Frontend: cd frontend  →  pnpm run dev
+Live URL:   https://family-stocks-9435a.web.app
 ==============================
+
+⚠ Known pending:
+  - Dashboard still reads from Go backend (shows ₹0)
+    → needs rewiring to Firestore stocks store

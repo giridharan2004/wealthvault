@@ -1,0 +1,3875 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/lib/components, src/routes, src/lib/stores
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/lib/components/StockCard.svelte
+src/lib/components/StockModals.svelte
+src/lib/components/ui/badge/badge.svelte
+src/lib/components/ui/badge/index.ts
+src/lib/components/ui/button/button.svelte
+src/lib/components/ui/button/index.ts
+src/lib/components/ui/card/card-action.svelte
+src/lib/components/ui/card/card-content.svelte
+src/lib/components/ui/card/card-description.svelte
+src/lib/components/ui/card/card-footer.svelte
+src/lib/components/ui/card/card-header.svelte
+src/lib/components/ui/card/card-title.svelte
+src/lib/components/ui/card/card.svelte
+src/lib/components/ui/card/index.ts
+src/lib/components/ui/dialog/dialog-close.svelte
+src/lib/components/ui/dialog/dialog-content.svelte
+src/lib/components/ui/dialog/dialog-description.svelte
+src/lib/components/ui/dialog/dialog-footer.svelte
+src/lib/components/ui/dialog/dialog-header.svelte
+src/lib/components/ui/dialog/dialog-overlay.svelte
+src/lib/components/ui/dialog/dialog-portal.svelte
+src/lib/components/ui/dialog/dialog-title.svelte
+src/lib/components/ui/dialog/dialog-trigger.svelte
+src/lib/components/ui/dialog/dialog.svelte
+src/lib/components/ui/dialog/index.ts
+src/lib/components/ui/drawer/drawer-close.svelte
+src/lib/components/ui/drawer/drawer-content.svelte
+src/lib/components/ui/drawer/drawer-description.svelte
+src/lib/components/ui/drawer/drawer-footer.svelte
+src/lib/components/ui/drawer/drawer-header.svelte
+src/lib/components/ui/drawer/drawer-nested.svelte
+src/lib/components/ui/drawer/drawer-overlay.svelte
+src/lib/components/ui/drawer/drawer-portal.svelte
+src/lib/components/ui/drawer/drawer-title.svelte
+src/lib/components/ui/drawer/drawer-trigger.svelte
+src/lib/components/ui/drawer/drawer.svelte
+src/lib/components/ui/drawer/index.ts
+src/lib/components/ui/input/index.ts
+src/lib/components/ui/input/input.svelte
+src/lib/components/ui/sheet/index.ts
+src/lib/components/ui/sheet/sheet-close.svelte
+src/lib/components/ui/sheet/sheet-content.svelte
+src/lib/components/ui/sheet/sheet-description.svelte
+src/lib/components/ui/sheet/sheet-footer.svelte
+src/lib/components/ui/sheet/sheet-header.svelte
+src/lib/components/ui/sheet/sheet-overlay.svelte
+src/lib/components/ui/sheet/sheet-portal.svelte
+src/lib/components/ui/sheet/sheet-title.svelte
+src/lib/components/ui/sheet/sheet-trigger.svelte
+src/lib/components/ui/sheet/sheet.svelte
+src/lib/components/ui/table/index.ts
+src/lib/components/ui/table/table-body.svelte
+src/lib/components/ui/table/table-caption.svelte
+src/lib/components/ui/table/table-cell.svelte
+src/lib/components/ui/table/table-footer.svelte
+src/lib/components/ui/table/table-head.svelte
+src/lib/components/ui/table/table-header.svelte
+src/lib/components/ui/table/table-row.svelte
+src/lib/components/ui/table/table.svelte
+src/lib/stores/auth.ts
+src/lib/stores/family.ts
+src/lib/stores/portfolio.ts
+src/lib/stores/stocks.ts
+src/routes/+layout.svelte
+src/routes/+page.svelte
+src/routes/dashboard/+page.svelte
+src/routes/family/+page.svelte
+src/routes/layout.css
+src/routes/login/+page.svelte
+src/routes/stocks/+page.svelte
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/lib/components/StockCard.svelte">
+<script lang="ts">
+  const {
+    stock,
+    isOwnStocks = true,
+    expandedRow = null,
+    formatINR = (v: number) => '₹' + v,
+    plClass = (v: number) => v >= 0 ? 'pos' : 'neg',
+    statusClass = () => '',
+    viewingUid = '',
+    onToggle = (_id: string) => {},
+    onBuyMore = (_s: any) => {},
+    onSell = (_s: any) => {},
+    onDelete = (_s: any) => {},
+    onRateClick = (_s: any) => {},
+    onReleaseToggle = (_s: any) => {}
+  } = $props();
+
+  const expanded = $derived(expandedRow === stock.id);
+  const pnl = $derived((stock.currentVal || 0) - (stock.investedVal || 0));
+  const isPos = $derived(pnl >= 0);
+</script>
+
+<div class="stock-row" class:expanded>
+  <button class="compact" onclick={() => onToggle(stock.id)}>
+    <div class="left">
+      <div class="ticker">
+        {stock.shortName || stock.shareName?.split(' ')[0] || ''}
+        {#if stock.plPercent >= 10}<span class="trophy">🏆</span>{/if}
+        {#if stock.status === 'Stop loss'}<span class="trophy">🛑</span>{/if}
+      </div>
+      <div class="name">{stock.shareName || ''}</div>
+      <div class="shares">{stock.qtyHeld ?? stock.buyQty ?? 0} shares · {stock.buyDate || ''}</div>
+    </div>
+    <div class="right">
+      <div class="price">{formatINR(stock.currentVal || 0)}</div>
+      <div class={isPos ? 'change-pos' : 'change-neg'}>
+        {isPos ? '+' : ''}{formatINR(pnl)} ({stock.plPercent?.toFixed(2) ?? '0.00'}%)
+      </div>
+    </div>
+    <span class="chevron" class:open={expanded}>&#8964;</span>
+  </button>
+
+  {#if expanded}
+  <div class="details">
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="dl">Invested</div>
+        <div class="dv">{formatINR(stock.investedVal || 0)}</div>
+      </div>
+      <div class="detail-item">
+        <div class="dl">Buy Qty</div>
+        <div class="dv">{stock.buyQty ?? 0}</div>
+      </div>
+      <div class="detail-item">
+        <div class="dl">Buy Price</div>
+        <div class="dv">{formatINR(stock.buyAmt || 0)}</div>
+      </div>
+      <div class="detail-item">
+        <div class="dl">Qty Held</div>
+        <div class="dv">{stock.qtyHeld ?? 0}</div>
+      </div>
+      <div class="detail-item">
+        <div class="dl">Today Rate</div>
+        {#if isOwnStocks}
+          <button class="dv blue rate-btn" onclick={(e) => { e.stopPropagation(); onRateClick(stock); }}>
+            {formatINR(stock.todaysRate || 0)}
+          </button>
+        {:else}
+          <div class="dv blue">{formatINR(stock.todaysRate || 0)}</div>
+        {/if}
+      </div>
+      <div class="detail-item">
+        <div class="dl">Diff P&L</div>
+        <div class="dv {isPos ? 'pos' : 'neg'}">{isPos ? '+' : ''}{formatINR(pnl)}</div>
+      </div>
+      <div class="detail-item">
+        <div class="dl">Stop Loss</div>
+        <div class="dv neg">{formatINR(stock.stopLoss || 0)}</div>
+      </div>
+      <div class="detail-item">
+        <div class="dl">Target</div>
+        <div class="dv pos">{formatINR(stock.target || 0)}</div>
+      </div>
+      <div class="detail-item">
+        <div class="dl">Qty/Sell</div>
+        <div class="dv">{Math.floor(stock.qtyNeedToSell ?? 0)}</div>
+      </div>
+      <div class="detail-item">
+        <div class="dl">Sold Freq</div>
+        <div class="dv">{stock.soldFrequency ?? 0}x</div>
+      </div>
+      <div class="detail-item">
+        <div class="dl">Sold Qty</div>
+        <div class="dv">{stock.soldQty ?? 0}</div>
+      </div>
+      <div class="detail-item">
+        <div class="dl">Sold Date</div>
+        <div class="dv">{stock.soldDate || '—'}</div>
+      </div>
+    </div>
+
+    <div class="status-row">
+      <span class="dl">Status</span>
+      <span class="status-badge">{stock.status || 'Hold'}</span>
+    </div>
+    <div class="released-row">
+      <span class="dl">Released</span>
+      <button
+        class="checkbox-btn"
+        class:checked={stock.releaseStatus}
+        onclick={(e) => { e.stopPropagation(); onReleaseToggle(stock); }}
+        disabled={!isOwnStocks}
+      >{#if stock.releaseStatus}✓{/if}</button>
+    </div>
+
+    {#if isOwnStocks}
+    <div class="action-btns">
+      <button class="btn btn-buy" onclick={(e) => { e.stopPropagation(); onBuyMore(stock); }}>+ Buy</button>
+      <button class="btn btn-sell" onclick={(e) => { e.stopPropagation(); onSell(stock); }}>Sell</button>
+      <button class="btn btn-del" onclick={(e) => { e.stopPropagation(); onDelete(stock); }}>Delete</button>
+    </div>
+    {/if}
+  </div>
+  {/if}
+</div>
+
+<style>
+.stock-row { background: #111; overflow: hidden; transition: background 0.15s; }
+.stock-row.expanded { background: #0d0d0d; }
+.compact { display: flex; align-items: flex-start; width: 100%; padding: 13px 16px; gap: 10px; cursor: pointer; background: transparent; border: none; text-align: left; }
+.left { flex: 1; min-width: 0; }
+.ticker { font-size: 14px; font-weight: 600; color: #fff; }
+.trophy { font-size: 11px; margin-left: 4px; }
+.name { font-size: 12px; color: #666; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shares { font-size: 11px; color: #444; margin-top: 2px; }
+.right { text-align: right; flex-shrink: 0; }
+.price { font-size: 14px; font-weight: 600; color: #fff; }
+.change-pos { font-size: 11px; color: #22c55e; margin-top: 2px; }
+.change-neg { font-size: 11px; color: #ef4444; margin-top: 2px; }
+.chevron { font-size: 14px; color: #444; align-self: center; margin-left: 6px; transition: transform 0.2s; display: inline-block; flex-shrink: 0; }
+.chevron.open { transform: rotate(180deg); color: #888; }
+.details { padding: 0 16px 14px; background: #161616; border-top: 0.5px solid #222; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.detail-item { padding: 8px 0; border-bottom: 0.5px solid #222; }
+.detail-item:nth-last-child(-n+2) { border-bottom: none; }
+.dl { font-size: 10px; color: #555; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+.dv { font-size: 13px; color: #bbb; font-weight: 500; }
+.dv.pos { color: #22c55e; }
+.dv.neg { color: #ef4444; }
+.dv.blue { color: #60a5fa; }
+.rate-btn { background: transparent; border: none; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-style: dotted; }
+.status-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0 6px; border-top: 0.5px solid #222; margin-top: 6px; }
+.status-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: #1a3a1a; color: #4ade80; font-weight: 500; }
+.released-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0 10px; }
+.checkbox-btn { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid #333; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; }
+.checkbox-btn.checked { background: #16a34a; border-color: #16a34a; }
+.action-btns { display: flex; gap: 8px; margin-top: 4px; }
+.btn { flex: 1; padding: 10px 0; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: opacity 0.15s, transform 0.1s; }
+.btn:active { opacity: 0.8; transform: scale(0.98); }
+.btn-buy { background: #1d4ed8; color: #fff; }
+.btn-sell { background: #16a34a; color: #fff; }
+.btn-del { background: #1f1f1f; color: #888; border: 0.5px solid #333; }
+</style>
+</file>
+
+<file path="src/lib/components/StockModals.svelte">
+<script lang="ts">
+	let {
+		showAddModal = $bindable(false),
+		showSellModal = $bindable(false),
+		showRateModal = $bindable(false),
+		showTargetsPanel = $bindable(false),
+		isBuyMore = $bindable(false),
+		selectedStock = $bindable<any>(null),
+		sellQty = $bindable(0),
+		sellRate = $bindable(0),
+		sellDate = $bindable(''),
+		newRate = $bindable(0),
+		form = $bindable<any>({}),
+		targetStocks,
+		isOwnStocks,
+		onAddStock,
+		onSell,
+		onRateUpdate,
+		onSellFromTargets,
+		formatINR,
+		plClass,
+		statusClass
+	}: {
+		showAddModal: boolean;
+		showSellModal: boolean;
+		showRateModal: boolean;
+		showTargetsPanel: boolean;
+		isBuyMore: boolean;
+		selectedStock: any;
+		sellQty: number;
+		sellRate: number;
+		sellDate: string;
+		newRate: number;
+		form: any;
+		targetStocks: any[];
+		isOwnStocks: boolean;
+		onAddStock: () => void;
+		onSell: () => void;
+		onRateUpdate: () => void;
+		onSellFromTargets: (stock: any) => void;
+		formatINR: (v: number) => string;
+		plClass: (v: number) => string;
+		statusClass: (s: string) => string;
+	} = $props();
+</script>
+
+<!-- Add / Buy More Modal -->
+{#if showAddModal}
+	<div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+		<div class="bg-[#1a1a1a] border border-white/10 rounded-2xl p-5 w-full max-w-md shadow-2xl">
+			<h2 class="text-white font-bold text-base mb-4">
+				{isBuyMore ? `+ Buy More â€” ${form.shareName}` : 'Add New Stock'}
+			</h2>
+			<div class="space-y-3">
+				<div class="grid grid-cols-2 gap-3">
+					<div>
+						<p class="text-white/40 text-xs block mb-1">Serial No</p>
+						<input
+							type="number"
+							bind:value={form.no}
+							class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none"
+						/>
+					</div>
+					<div>
+						<p class="text-white/40 text-xs block mb-1">Buy Date</p>
+						<input
+							type="date"
+							bind:value={form.buyDate}
+							class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none"
+						/>
+					</div>
+				</div>
+				<div>
+					<p class="text-white/40 text-xs block mb-1">Share Name</p>
+					<input
+						type="text"
+						bind:value={form.shareName}
+						placeholder="Tata Consultancy Services"
+						disabled={isBuyMore}
+						class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none disabled:opacity-40"
+					/>
+				</div>
+				<div>
+					<p class="text-white/40 text-xs block mb-1">NSE Symbol</p>
+					<input
+						type="text"
+						bind:value={form.shortName}
+						placeholder="TCS"
+						disabled={isBuyMore}
+						class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none disabled:opacity-40"
+					/>
+					<p class="text-white/25 text-xs mt-1">Used to auto-fetch live NSE prices</p>
+				</div>
+				<div class="grid grid-cols-2 gap-3">
+					<div>
+						<p class="text-white/40 text-xs block mb-1">Buy Qty</p>
+						<input
+							type="number"
+							bind:value={form.buyQty}
+							class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none"
+						/>
+					</div>
+					<div>
+						<p class="text-white/40 text-xs block mb-1">Buy Price (â‚¹)</p>
+						<input
+							type="number"
+							bind:value={form.buyAmt}
+							class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none"
+						/>
+					</div>
+				</div>
+				<div>
+					<p class="text-white/40 text-xs block mb-1">Today's Rate (optional â€” will auto-fetch)</p>
+					>
+					<input
+						type="number"
+						bind:value={form.todaysRate}
+						class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none"
+					/>
+				</div>
+				{#if form.buyQty && form.buyAmt}
+					<div class="bg-white/5 border border-white/8 rounded-xl p-3 text-xs space-y-1.5">
+						<div class="flex justify-between">
+							<span class="text-white/40">Invested Val</span>
+							<span class="text-white font-medium">{formatINR(form.buyQty * form.buyAmt)}</span>
+						</div>
+						<div class="flex justify-between">
+							<span class="text-white/40">Stop Loss (90%)</span>
+							<span class="text-red-400">{formatINR(form.buyQty * form.buyAmt * 0.9)}</span>
+						</div>
+						<div class="flex justify-between">
+							<span class="text-white/40">Target +10%</span>
+							<span class="text-blue-400">{formatINR(form.buyQty * form.buyAmt * 1.1)}</span>
+						</div>
+					</div>
+				{/if}
+			</div>
+			<div class="flex gap-3 mt-4">
+				<button
+					onclick={() => {
+						showAddModal = false;
+						isBuyMore = false;
+					}}
+					class="flex-1 bg-white/8 hover:bg-white/12 text-white/70 py-2 rounded-xl transition text-sm font-medium"
+				>
+					Cancel
+				</button>
+				<button
+					onclick={onAddStock}
+					class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 rounded-xl transition text-sm"
+				>
+					{isBuyMore ? 'Buy More' : 'Add Stock'}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Sell Modal -->
+{#if showSellModal && selectedStock}
+	<div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+		<div class="bg-[#1a1a1a] border border-white/10 rounded-2xl p-5 w-full max-w-md shadow-2xl">
+			<h2 class="text-white font-bold text-base mb-4">Sell Stock</h2>
+			<div class="space-y-3">
+				<div class="grid grid-cols-2 gap-3">
+					<div>
+						<p class="text-white/40 text-xs block mb-1">Share Name</p>
+						<div
+							class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white/70 text-sm"
+						>
+							{selectedStock.shareName}
+						</div>
+					</div>
+					<div>
+						<p class="text-white/40 text-xs block mb-1">NSE Symbol</p>
+						<div
+							class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white/70 text-sm"
+						>
+							{selectedStock.shortName}
+						</div>
+					</div>
+				</div>
+				<div class="grid grid-cols-2 gap-3">
+					<div>
+						<p class="text-white/40 text-xs block mb-1">Qty Held</p>
+						<div
+							class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white/70 text-sm"
+						>
+							{selectedStock.qtyHeld}
+						</div>
+					</div>
+					<div>
+						<p class="text-white/40 text-xs block mb-1">Sell Frequency</p>
+						<div
+							class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white/70 text-sm"
+						>
+							{selectedStock.soldFrequency}x
+						</div>
+					</div>
+				</div>
+				<div class="grid grid-cols-2 gap-3">
+					<div>
+						<p class="text-white/40 text-xs block mb-1">Sell Rate (â‚¹) <span class="text-emerald-400">editable</span></p>
+						>
+						<input
+							type="number"
+							bind:value={sellRate}
+							class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-blue-400 text-sm focus:border-emerald-500 outline-none"
+						/>
+					</div>
+					<div>
+						<p class="text-white/40 text-xs block mb-1">Sell Date</p>
+						<input
+							type="date"
+							bind:value={sellDate}
+							class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none"
+						/>
+					</div>
+				</div>
+				<div>
+					<p class="text-white/40 text-xs block mb-1">Qty to Sell (max {selectedStock.qtyHeld})</p>
+					>
+					<input
+						type="number"
+						bind:value={sellQty}
+						max={selectedStock.qtyHeld}
+						min="1"
+						class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none"
+					/>
+					<button
+						onclick={() => (sellQty = selectedStock.qtyHeld)}
+						class="text-xs text-emerald-400 hover:text-emerald-300 mt-1 font-medium"
+					>
+						Sell all {selectedStock.qtyHeld} held
+					</button>
+				</div>
+				{#if sellQty > 0}
+					<div class="bg-white/5 border border-white/8 rounded-xl p-3 text-xs space-y-1.5">
+						<div class="flex justify-between">
+							<span class="text-white/40">Selling Value</span>
+							<span class="text-white font-medium">{formatINR(sellQty * sellRate)}</span>
+						</div>
+						<div class="flex justify-between">
+							<span class="text-white/40">Current P&L%</span>
+							<span class="{plClass(selectedStock.plPercent)} font-medium"
+								>{selectedStock.plPercent?.toFixed(2)}%</span
+							>
+						</div>
+						<div class="flex justify-between">
+							<span class="text-white/40">Target</span>
+							<span class="text-blue-400 font-medium">{formatINR(selectedStock.target)}</span>
+						</div>
+						<div class="flex justify-between border-t border-white/8 pt-1.5 mt-1.5">
+							<span class="text-white/40">Remaining after sell</span>
+							<span
+								class="{selectedStock.qtyHeld - sellQty < 0
+									? 'text-red-400'
+									: 'text-white'} font-medium"
+							>
+								{selectedStock.qtyHeld - sellQty}
+							</span>
+						</div>
+					</div>
+				{/if}
+			</div>
+			<div class="flex gap-3 mt-4">
+				<button
+					onclick={() => {
+						showSellModal = false;
+						sellQty = 0;
+					}}
+					class="flex-1 bg-white/8 hover:bg-white/12 text-white/70 py-2 rounded-xl transition text-sm font-medium"
+				>
+					Cancel
+				</button>
+				<button
+					onclick={onSell}
+					disabled={sellQty <= 0 || sellQty > selectedStock.qtyHeld}
+					class="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-2 rounded-xl transition text-sm"
+				>
+					Confirm Sell
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Rate Update Modal -->
+{#if showRateModal && selectedStock}
+	<div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+		<div class="bg-[#1a1a1a] border border-white/10 rounded-2xl p-5 w-full max-w-sm shadow-2xl">
+			<h2 class="text-white font-bold text-base mb-1">Update Rate</h2>
+			<p class="text-white/40 text-sm mb-4">{selectedStock.shareName}</p>
+			<p class="text-white/40 text-xs block mb-1">Today's Rate (â‚¹)</p>
+			<input
+				type="number"
+				bind:value={newRate}
+				class="w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-emerald-500 outline-none mb-4"
+			/>
+			<div class="flex gap-3">
+				<button
+					onclick={() => {
+						showRateModal = false;
+						newRate = 0;
+					}}
+					class="flex-1 bg-white/8 hover:bg-white/12 text-white/70 py-2 rounded-xl transition text-sm font-medium"
+				>
+					Cancel
+				</button>
+				<button
+					onclick={onRateUpdate}
+					class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-xl transition text-sm"
+				>
+					Update Rate
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<!-- Targets Hit Panel -->
+{#if showTargetsPanel}
+	<div
+		class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-50 p-4 pt-10 overflow-y-auto"
+	>
+		<div class="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-5xl shadow-xl">
+			<div class="flex items-center justify-between px-5 py-4 border-b border-white/8">
+				<div>
+					<h2 class="text-white font-bold text-base">ðŸ† Stocks with P&L â‰¥ 10%</h2>
+					<p class="text-white/40 text-xs">
+						{targetStocks.length} stock{targetStocks.length !== 1 ? 's' : ''} at or above target
+					</p>
+				</div>
+				<button
+					onclick={() => (showTargetsPanel = false)}
+					class="text-white/30 hover:text-white text-xl px-2">âœ•</button
+				>
+			</div>
+			<div class="overflow-x-auto p-4">
+				<table class="w-full text-xs">
+					<thead>
+						<tr class="text-white/40 border-b border-white/8">
+							<th class="text-left px-3 py-2">Share</th>
+							<th class="text-right px-3 py-2">Invested</th>
+							<th class="text-right px-3 py-2">Current Val</th>
+							<th class="text-right px-3 py-2">P&L%</th>
+							<th class="text-right px-3 py-2">Gain</th>
+							<th class="text-right px-3 py-2">Today Rate</th>
+							<th class="text-right px-3 py-2">Target</th>
+							<th class="text-center px-3 py-2">Status</th>
+							<th class="text-right px-3 py-2">Qty Held</th>
+							{#if isOwnStocks}<th class="text-center px-3 py-2">Action</th>{/if}
+						</tr>
+					</thead>
+					<tbody>
+						{#each [...targetStocks].sort((a, b) => b.plPercent - a.plPercent) as stock}
+							<tr class="border-b border-white/5 hover:bg-white/3 transition">
+								<td class="px-3 py-3">
+									<div class="font-semibold text-white">{stock.shareName}</div>
+									<div class="text-white/40">{stock.shortName}</div>
+								</td>
+								<td class="px-3 py-3 text-right text-white/60">{formatINR(stock.investedVal)}</td>
+								<td class="px-3 py-3 text-right text-white font-medium"
+									>{formatINR(stock.currentVal)}</td
+								>
+								<td class="px-3 py-3 text-right font-bold text-emerald-400"
+									>{stock.plPercent?.toFixed(2)}%</td
+								>
+								<td class="px-3 py-3 text-right text-emerald-400">{formatINR(stock.diffPL)}</td>
+								<td class="px-3 py-3 text-right text-blue-400">{formatINR(stock.todaysRate)}</td>
+								<td class="px-3 py-3 text-right text-blue-400">{formatINR(stock.target)}</td>
+								<td class="px-3 py-3 text-center">
+									<span class="px-2 py-1 rounded-full text-xs {statusClass(stock.status)}"
+										>{stock.status}</span
+									>
+								</td>
+								<td class="px-3 py-3 text-right text-white/60">{stock.qtyHeld}</td>
+								{#if isOwnStocks}
+									<td class="px-3 py-3 text-center">
+										<button
+											onclick={() => onSellFromTargets(stock)}
+											class="text-xs bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded-lg transition font-semibold"
+										>
+											Sell Now
+										</button>
+									</td>
+								{/if}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+			<div class="px-5 py-4 border-t border-white/8 rounded-b-2xl flex gap-8 flex-wrap">
+				<div>
+					<p class="text-white/40 text-xs">Total Invested</p>
+					<p class="text-white font-bold">
+						{formatINR(targetStocks.reduce((s, x) => s + x.investedVal, 0))}
+					</p>
+				</div>
+				<div>
+					<p class="text-white/40 text-xs">Total Current</p>
+					<p class="text-white font-bold">
+						{formatINR(targetStocks.reduce((s, x) => s + x.currentVal, 0))}
+					</p>
+				</div>
+				<div>
+					<p class="text-white/40 text-xs">Total Gain</p>
+					<p class="text-emerald-400 font-bold">
+						{formatINR(targetStocks.reduce((s, x) => s + x.diffPL, 0))}
+					</p>
+				</div>
+				<div>
+					<p class="text-white/40 text-xs">Avg P&L%</p>
+					<p class="text-emerald-400 font-bold">
+						{(targetStocks.reduce((s, x) => s + x.plPercent, 0) / targetStocks.length).toFixed(2)}%
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
+</file>
+
+<file path="src/lib/components/ui/badge/badge.svelte">
+<script lang="ts" module>
+	import { type VariantProps, tv } from "tailwind-variants";
+
+	export const badgeVariants = tv({
+		base: "h-5 gap-1 rounded-4xl border border-transparent px-2 py-0.5 text-xs font-medium transition-all has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive group/badge inline-flex w-fit shrink-0 items-center justify-center overflow-hidden whitespace-nowrap transition-colors focus-visible:ring-[3px] [&>svg]:pointer-events-none",
+		variants: {
+			variant: {
+				default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+				secondary: "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
+				destructive: "bg-destructive/10 [a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20",
+				outline: "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
+				ghost: "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
+				link: "text-primary underline-offset-4 hover:underline",
+			},
+		},
+		defaultVariants: {
+			variant: "default",
+		},
+	});
+
+	export type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
+</script>
+
+<script lang="ts">
+	import type { HTMLAnchorAttributes } from "svelte/elements";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		href,
+		class: className,
+		variant = "default",
+		children,
+		...restProps
+	}: WithElementRef<HTMLAnchorAttributes> & {
+		variant?: BadgeVariant;
+	} = $props();
+</script>
+
+<svelte:element
+	this={href ? "a" : "span"}
+	bind:this={ref}
+	data-slot="badge"
+	{href}
+	class={cn(badgeVariants({ variant }), className)}
+	{...restProps}
+>
+	{@render children?.()}
+</svelte:element>
+</file>
+
+<file path="src/lib/components/ui/badge/index.ts">
+export { default as Badge } from "./badge.svelte";
+export { badgeVariants, type BadgeVariant } from "./badge.svelte";
+</file>
+
+<file path="src/lib/components/ui/button/button.svelte">
+<script lang="ts" module>
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
+	import { type VariantProps, tv } from "tailwind-variants";
+
+	export const buttonVariants = tv({
+		base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 rounded-lg border border-transparent bg-clip-padding text-sm font-medium focus-visible:ring-3 active:not-aria-[haspopup]:translate-y-px aria-invalid:ring-3 [&_svg:not([class*='size-'])]:size-4 group/button inline-flex shrink-0 items-center justify-center whitespace-nowrap transition-all outline-none select-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+		variants: {
+			variant: {
+				default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+				outline: "border-border bg-background hover:bg-muted hover:text-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 aria-expanded:bg-muted aria-expanded:text-foreground",
+				secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+				ghost: "hover:bg-muted hover:text-foreground dark:hover:bg-muted/50 aria-expanded:bg-muted aria-expanded:text-foreground",
+				destructive: "bg-destructive/10 hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/20 text-destructive focus-visible:border-destructive/40 dark:hover:bg-destructive/30",
+				link: "text-primary underline-offset-4 hover:underline",
+			},
+			size: {
+				default: "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+				xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+				sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+				lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+				icon: "size-8",
+				"icon-xs": "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
+				"icon-sm": "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
+				"icon-lg": "size-9",
+			},
+		},
+		defaultVariants: {
+			variant: "default",
+			size: "default",
+		},
+	});
+
+	export type ButtonVariant = VariantProps<typeof buttonVariants>["variant"];
+	export type ButtonSize = VariantProps<typeof buttonVariants>["size"];
+
+	export type ButtonProps = WithElementRef<HTMLButtonAttributes> &
+		WithElementRef<HTMLAnchorAttributes> & {
+			variant?: ButtonVariant;
+			size?: ButtonSize;
+		};
+</script>
+
+<script lang="ts">
+	let {
+		class: className,
+		variant = "default",
+		size = "default",
+		ref = $bindable(null),
+		href = undefined,
+		type = "button",
+		disabled,
+		children,
+		...restProps
+	}: ButtonProps = $props();
+</script>
+
+{#if href}
+	<a
+		bind:this={ref}
+		data-slot="button"
+		class={cn(buttonVariants({ variant, size }), className)}
+		href={disabled ? undefined : href}
+		aria-disabled={disabled}
+		role={disabled ? "link" : undefined}
+		tabindex={disabled ? -1 : undefined}
+		{...restProps}
+	>
+		{@render children?.()}
+	</a>
+{:else}
+	<button
+		bind:this={ref}
+		data-slot="button"
+		class={cn(buttonVariants({ variant, size }), className)}
+		{type}
+		{disabled}
+		{...restProps}
+	>
+		{@render children?.()}
+	</button>
+{/if}
+</file>
+
+<file path="src/lib/components/ui/button/index.ts">
+import Root, {
+	type ButtonProps,
+	type ButtonSize,
+	type ButtonVariant,
+	buttonVariants,
+} from "./button.svelte";
+
+export {
+	Root,
+	type ButtonProps as Props,
+	//
+	Root as Button,
+	buttonVariants,
+	type ButtonProps,
+	type ButtonSize,
+	type ButtonVariant,
+};
+</file>
+
+<file path="src/lib/components/ui/card/card-action.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="card-action"
+	class={cn(
+		"cn-card-action col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+		className
+	)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/card/card-content.svelte">
+<script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="card-content"
+	class={cn("px-4 group-data-[size=sm]/card:px-3", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/card/card-description.svelte">
+<script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLParagraphElement>> = $props();
+</script>
+
+<p
+	bind:this={ref}
+	data-slot="card-description"
+	class={cn("text-muted-foreground text-sm", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</p>
+</file>
+
+<file path="src/lib/components/ui/card/card-footer.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="card-footer"
+	class={cn("bg-muted/50 rounded-b-xl border-t p-4 group-data-[size=sm]/card:p-3 flex items-center", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/card/card-header.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="card-header"
+	class={cn(
+		"gap-1 rounded-t-xl px-4 group-data-[size=sm]/card:px-3 [.border-b]:pb-4 group-data-[size=sm]/card:[.border-b]:pb-3 group/card-header @container/card-header grid auto-rows-min items-start has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto]",
+		className
+	)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/card/card-title.svelte">
+<script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="card-title"
+	class={cn("font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/card/card.svelte">
+<script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		size = "default",
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & { size?: "default" | "sm" } = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="card"
+	data-size={size}
+	class={cn("ring-foreground/10 bg-card text-card-foreground gap-4 overflow-hidden rounded-xl py-4 text-sm ring-1 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl group/card flex flex-col", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/card/index.ts">
+import Root from "./card.svelte";
+import Content from "./card-content.svelte";
+import Description from "./card-description.svelte";
+import Footer from "./card-footer.svelte";
+import Header from "./card-header.svelte";
+import Title from "./card-title.svelte";
+import Action from "./card-action.svelte";
+
+export {
+	Root,
+	Content,
+	Description,
+	Footer,
+	Header,
+	Title,
+	Action,
+	//
+	Root as Card,
+	Content as CardContent,
+	Description as CardDescription,
+	Footer as CardFooter,
+	Header as CardHeader,
+	Title as CardTitle,
+	Action as CardAction,
+};
+</file>
+
+<file path="src/lib/components/ui/dialog/dialog-close.svelte">
+<script lang="ts">
+	import { Dialog as DialogPrimitive } from "bits-ui";
+
+	let {
+		ref = $bindable(null),
+		type = "button",
+		...restProps
+	}: DialogPrimitive.CloseProps = $props();
+</script>
+
+<DialogPrimitive.Close bind:ref data-slot="dialog-close" {type} {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/dialog/dialog-content.svelte">
+<script lang="ts">
+	import { Dialog as DialogPrimitive } from "bits-ui";
+	import DialogPortal from "./dialog-portal.svelte";
+	import type { Snippet } from "svelte";
+	import * as Dialog from "./index.js";
+	import { cn, type WithoutChildrenOrChild } from "$lib/utils.js";
+	import type { ComponentProps } from "svelte";
+	import { Button } from "$lib/components/ui/button/index.js";
+	import XIcon from '@lucide/svelte/icons/x';
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		portalProps,
+		children,
+		showCloseButton = true,
+		...restProps
+	}: WithoutChildrenOrChild<DialogPrimitive.ContentProps> & {
+		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DialogPortal>>;
+		children: Snippet;
+		showCloseButton?: boolean;
+	} = $props();
+</script>
+
+<DialogPortal {...portalProps}>
+	<Dialog.Overlay />
+	<DialogPrimitive.Content
+		bind:ref
+		data-slot="dialog-content"
+		class={cn(
+			"bg-popover text-popover-foreground data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 ring-foreground/10 grid max-w-[calc(100%-2rem)] gap-4 rounded-xl p-4 text-sm ring-1 duration-100 sm:max-w-sm fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 outline-none",
+			className
+		)}
+		{...restProps}
+	>
+		{@render children?.()}
+		{#if showCloseButton}
+			<DialogPrimitive.Close data-slot="dialog-close">
+				{#snippet child({ props })}
+					<Button variant="ghost" class="absolute top-2 right-2" size="icon-sm" {...props}>
+						<XIcon  />
+						<span class="sr-only">Close</span>
+					</Button>
+				{/snippet}
+			</DialogPrimitive.Close>
+		{/if}
+	</DialogPrimitive.Content>
+</DialogPortal>
+</file>
+
+<file path="src/lib/components/ui/dialog/dialog-description.svelte">
+<script lang="ts">
+	import { Dialog as DialogPrimitive } from "bits-ui";
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: DialogPrimitive.DescriptionProps = $props();
+</script>
+
+<DialogPrimitive.Description
+	bind:ref
+	data-slot="dialog-description"
+	class={cn("text-muted-foreground *:[a]:hover:text-foreground text-sm *:[a]:underline *:[a]:underline-offset-3", className)}
+	{...restProps}
+/>
+</file>
+
+<file path="src/lib/components/ui/dialog/dialog-footer.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+	import { Dialog as DialogPrimitive } from "bits-ui";
+	import { Button } from "$lib/components/ui/button/index.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		showCloseButton = false,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
+		showCloseButton?: boolean;
+	} = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="dialog-footer"
+	class={cn("bg-muted/50 -mx-4 -mb-4 rounded-b-xl border-t p-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
+	{...restProps}
+>
+	{@render children?.()}
+	{#if showCloseButton}
+		<DialogPrimitive.Close>
+			{#snippet child({ props })}
+				<Button variant="outline" {...props}>Close</Button>
+			{/snippet}
+		</DialogPrimitive.Close>
+	{/if}
+</div>
+</file>
+
+<file path="src/lib/components/ui/dialog/dialog-header.svelte">
+<script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="dialog-header"
+	class={cn("gap-2 flex flex-col", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/dialog/dialog-overlay.svelte">
+<script lang="ts">
+	import { Dialog as DialogPrimitive } from "bits-ui";
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: DialogPrimitive.OverlayProps = $props();
+</script>
+
+<DialogPrimitive.Overlay
+	bind:ref
+	data-slot="dialog-overlay"
+	class={cn("data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs fixed inset-0 isolate z-50", className)}
+	{...restProps}
+/>
+</file>
+
+<file path="src/lib/components/ui/dialog/dialog-portal.svelte">
+<script lang="ts">
+	import { Dialog as DialogPrimitive } from "bits-ui";
+
+	let { ...restProps }: DialogPrimitive.PortalProps = $props();
+</script>
+
+<DialogPrimitive.Portal {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/dialog/dialog-title.svelte">
+<script lang="ts">
+	import { Dialog as DialogPrimitive } from "bits-ui";
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: DialogPrimitive.TitleProps = $props();
+</script>
+
+<DialogPrimitive.Title
+	bind:ref
+	data-slot="dialog-title"
+	class={cn("font-heading text-base leading-none font-medium", className)}
+	{...restProps}
+/>
+</file>
+
+<file path="src/lib/components/ui/dialog/dialog-trigger.svelte">
+<script lang="ts">
+	import { Dialog as DialogPrimitive } from "bits-ui";
+
+	let {
+		ref = $bindable(null),
+		type = "button",
+		...restProps
+	}: DialogPrimitive.TriggerProps = $props();
+</script>
+
+<DialogPrimitive.Trigger bind:ref data-slot="dialog-trigger" {type} {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/dialog/dialog.svelte">
+<script lang="ts">
+	import { Dialog as DialogPrimitive } from "bits-ui";
+
+	let { open = $bindable(false), ...restProps }: DialogPrimitive.RootProps = $props();
+</script>
+
+<DialogPrimitive.Root bind:open {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/dialog/index.ts">
+import Root from "./dialog.svelte";
+import Portal from "./dialog-portal.svelte";
+import Title from "./dialog-title.svelte";
+import Footer from "./dialog-footer.svelte";
+import Header from "./dialog-header.svelte";
+import Overlay from "./dialog-overlay.svelte";
+import Content from "./dialog-content.svelte";
+import Description from "./dialog-description.svelte";
+import Trigger from "./dialog-trigger.svelte";
+import Close from "./dialog-close.svelte";
+
+export {
+	Root,
+	Title,
+	Portal,
+	Footer,
+	Header,
+	Trigger,
+	Overlay,
+	Content,
+	Description,
+	Close,
+	//
+	Root as Dialog,
+	Title as DialogTitle,
+	Portal as DialogPortal,
+	Footer as DialogFooter,
+	Header as DialogHeader,
+	Trigger as DialogTrigger,
+	Overlay as DialogOverlay,
+	Content as DialogContent,
+	Description as DialogDescription,
+	Close as DialogClose,
+};
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer-close.svelte">
+<script lang="ts">
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+
+	let { ref = $bindable(null), ...restProps }: DrawerPrimitive.CloseProps = $props();
+</script>
+
+<DrawerPrimitive.Close bind:ref data-slot="drawer-close" {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer-content.svelte">
+<script lang="ts">
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+	import DrawerPortal from "./drawer-portal.svelte";
+	import DrawerOverlay from "./drawer-overlay.svelte";
+	import { cn } from "$lib/utils.js";
+	import type { ComponentProps } from "svelte";
+	import type { WithoutChildrenOrChild } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		portalProps,
+		children,
+		...restProps
+	}: DrawerPrimitive.ContentProps & {
+		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DrawerPortal>>;
+	} = $props();
+</script>
+
+<DrawerPortal {...portalProps}>
+	<DrawerOverlay />
+	<DrawerPrimitive.Content
+		bind:ref
+		data-slot="drawer-content"
+		class={cn("bg-popover text-popover-foreground flex h-auto flex-col text-sm data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-t-xl data-[vaul-drawer-direction=bottom]:border-t data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-3/4 data-[vaul-drawer-direction=left]:rounded-r-xl data-[vaul-drawer-direction=left]:border-r data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-3/4 data-[vaul-drawer-direction=right]:rounded-l-xl data-[vaul-drawer-direction=right]:border-l data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:mb-24 data-[vaul-drawer-direction=top]:max-h-[80vh] data-[vaul-drawer-direction=top]:rounded-b-xl data-[vaul-drawer-direction=top]:border-b data-[vaul-drawer-direction=left]:sm:max-w-sm data-[vaul-drawer-direction=right]:sm:max-w-sm group/drawer-content fixed z-50", className)}
+		{...restProps}
+	>
+		<div
+			class="bg-muted mx-auto mt-4 hidden h-1 w-[100px] shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block bg-muted mx-auto hidden shrink-0 group-data-[vaul-drawer-direction=bottom]/drawer-content:block"
+		></div>
+		{@render children?.()}
+	</DrawerPrimitive.Content>
+</DrawerPortal>
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer-description.svelte">
+<script lang="ts">
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: DrawerPrimitive.DescriptionProps = $props();
+</script>
+
+<DrawerPrimitive.Description
+	bind:ref
+	data-slot="drawer-description"
+	class={cn("text-muted-foreground text-sm", className)}
+	{...restProps}
+/>
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer-footer.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="drawer-footer"
+	class={cn("gap-2 p-4 mt-auto flex flex-col", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer-header.svelte">
+<script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="drawer-header"
+	class={cn("gap-0.5 p-4 group-data-[vaul-drawer-direction=bottom]/drawer-content:text-center group-data-[vaul-drawer-direction=top]/drawer-content:text-center md:gap-0.5 md:text-left flex flex-col", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer-nested.svelte">
+<script lang="ts">
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+
+	let {
+		shouldScaleBackground = true,
+		open = $bindable(false),
+		activeSnapPoint = $bindable(null),
+		...restProps
+	}: DrawerPrimitive.RootProps = $props();
+</script>
+
+<DrawerPrimitive.NestedRoot {shouldScaleBackground} bind:open bind:activeSnapPoint {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer-overlay.svelte">
+<script lang="ts">
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: DrawerPrimitive.OverlayProps = $props();
+</script>
+
+<DrawerPrimitive.Overlay
+	bind:ref
+	data-slot="drawer-overlay"
+	class={cn("data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 bg-black/10 supports-backdrop-filter:backdrop-blur-xs fixed inset-0 z-50", className)}
+	{...restProps}
+/>
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer-portal.svelte">
+<script lang="ts">
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+
+	let { ...restProps }: DrawerPrimitive.PortalProps = $props();
+</script>
+
+<DrawerPrimitive.Portal {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer-title.svelte">
+<script lang="ts">
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: DrawerPrimitive.TitleProps = $props();
+</script>
+
+<DrawerPrimitive.Title
+	bind:ref
+	data-slot="drawer-title"
+	class={cn("font-heading text-foreground text-base font-medium", className)}
+	{...restProps}
+/>
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer-trigger.svelte">
+<script lang="ts">
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+
+	let { ref = $bindable(null), ...restProps }: DrawerPrimitive.TriggerProps = $props();
+</script>
+
+<DrawerPrimitive.Trigger bind:ref data-slot="drawer-trigger" {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/drawer/drawer.svelte">
+<script lang="ts">
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+
+	let {
+		shouldScaleBackground = true,
+		open = $bindable(false),
+		activeSnapPoint = $bindable(null),
+		...restProps
+	}: DrawerPrimitive.RootProps = $props();
+</script>
+
+<DrawerPrimitive.Root {shouldScaleBackground} bind:open bind:activeSnapPoint {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/drawer/index.ts">
+import Root from "./drawer.svelte";
+import Content from "./drawer-content.svelte";
+import Description from "./drawer-description.svelte";
+import Overlay from "./drawer-overlay.svelte";
+import Footer from "./drawer-footer.svelte";
+import Header from "./drawer-header.svelte";
+import Title from "./drawer-title.svelte";
+import NestedRoot from "./drawer-nested.svelte";
+import Close from "./drawer-close.svelte";
+import Trigger from "./drawer-trigger.svelte";
+import Portal from "./drawer-portal.svelte";
+
+export {
+	Root,
+	NestedRoot,
+	Content,
+	Description,
+	Overlay,
+	Footer,
+	Header,
+	Title,
+	Trigger,
+	Portal,
+	Close,
+
+	//
+	Root as Drawer,
+	NestedRoot as DrawerNestedRoot,
+	Content as DrawerContent,
+	Description as DrawerDescription,
+	Overlay as DrawerOverlay,
+	Footer as DrawerFooter,
+	Header as DrawerHeader,
+	Title as DrawerTitle,
+	Trigger as DrawerTrigger,
+	Portal as DrawerPortal,
+	Close as DrawerClose,
+};
+</file>
+
+<file path="src/lib/components/ui/input/index.ts">
+import Root from "./input.svelte";
+
+export {
+	Root,
+	//
+	Root as Input,
+};
+</file>
+
+<file path="src/lib/components/ui/input/input.svelte">
+<script lang="ts">
+	import type { HTMLInputAttributes, HTMLInputTypeAttribute } from "svelte/elements";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+
+	type InputType = Exclude<HTMLInputTypeAttribute, "file">;
+
+	type Props = WithElementRef<
+		Omit<HTMLInputAttributes, "type"> &
+			({ type: "file"; files?: FileList } | { type?: InputType; files?: undefined })
+	>;
+
+	let {
+		ref = $bindable(null),
+		value = $bindable(),
+		type,
+		files = $bindable(),
+		class: className,
+		"data-slot": dataSlot = "input",
+		...restProps
+	}: Props = $props();
+</script>
+
+{#if type === "file"}
+	<input
+		bind:this={ref}
+		data-slot={dataSlot}
+		class={cn(
+			"dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 disabled:bg-input/50 dark:disabled:bg-input/80 h-8 rounded-lg border bg-transparent px-2.5 py-1 text-base transition-colors file:h-6 file:text-sm file:font-medium focus-visible:ring-3 aria-invalid:ring-3 md:text-sm file:text-foreground placeholder:text-muted-foreground w-full min-w-0 outline-none file:inline-flex file:border-0 file:bg-transparent disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+			className
+		)}
+		type="file"
+		bind:files
+		bind:value
+		{...restProps}
+	/>
+{:else}
+	<input
+		bind:this={ref}
+		data-slot={dataSlot}
+		class={cn(
+			"dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 disabled:bg-input/50 dark:disabled:bg-input/80 h-8 rounded-lg border bg-transparent px-2.5 py-1 text-base transition-colors file:h-6 file:text-sm file:font-medium focus-visible:ring-3 aria-invalid:ring-3 md:text-sm file:text-foreground placeholder:text-muted-foreground w-full min-w-0 outline-none file:inline-flex file:border-0 file:bg-transparent disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+			className
+		)}
+		{type}
+		bind:value
+		{...restProps}
+	/>
+{/if}
+</file>
+
+<file path="src/lib/components/ui/sheet/index.ts">
+import Root from "./sheet.svelte";
+import Portal from "./sheet-portal.svelte";
+import Trigger from "./sheet-trigger.svelte";
+import Close from "./sheet-close.svelte";
+import Overlay from "./sheet-overlay.svelte";
+import Content from "./sheet-content.svelte";
+import Header from "./sheet-header.svelte";
+import Footer from "./sheet-footer.svelte";
+import Title from "./sheet-title.svelte";
+import Description from "./sheet-description.svelte";
+
+export {
+	Root,
+	Close,
+	Trigger,
+	Portal,
+	Overlay,
+	Content,
+	Header,
+	Footer,
+	Title,
+	Description,
+	//
+	Root as Sheet,
+	Close as SheetClose,
+	Trigger as SheetTrigger,
+	Portal as SheetPortal,
+	Overlay as SheetOverlay,
+	Content as SheetContent,
+	Header as SheetHeader,
+	Footer as SheetFooter,
+	Title as SheetTitle,
+	Description as SheetDescription,
+};
+</file>
+
+<file path="src/lib/components/ui/sheet/sheet-close.svelte">
+<script lang="ts">
+	import { Dialog as SheetPrimitive } from "bits-ui";
+
+	let { ref = $bindable(null), ...restProps }: SheetPrimitive.CloseProps = $props();
+</script>
+
+<SheetPrimitive.Close bind:ref data-slot="sheet-close" {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/sheet/sheet-content.svelte">
+<script lang="ts" module>
+	export type Side = "top" | "right" | "bottom" | "left";
+</script>
+
+<script lang="ts">
+	import { Dialog as SheetPrimitive } from "bits-ui";
+	import type { Snippet } from "svelte";
+	import SheetPortal from "./sheet-portal.svelte";
+	import SheetOverlay from "./sheet-overlay.svelte";
+	import { Button } from "$lib/components/ui/button/index.js";
+	import XIcon from '@lucide/svelte/icons/x';
+	import { cn, type WithoutChildrenOrChild } from "$lib/utils.js";
+	import type { ComponentProps } from "svelte";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		side = "right",
+		showCloseButton = true,
+		portalProps,
+		children,
+		...restProps
+	}: WithoutChildrenOrChild<SheetPrimitive.ContentProps> & {
+		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof SheetPortal>>;
+		side?: Side;
+		showCloseButton?: boolean;
+		children: Snippet;
+	} = $props();
+</script>
+
+<SheetPortal {...portalProps}>
+	<SheetOverlay />
+	<SheetPrimitive.Content
+		bind:ref
+		data-slot="sheet-content"
+		data-side={side}
+		class={cn(
+			"bg-popover text-popover-foreground fixed z-50 flex flex-col gap-4 bg-clip-padding text-sm shadow-lg transition duration-200 ease-in-out data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-[side=bottom]:data-open:slide-in-from-bottom-10 data-[side=left]:data-open:slide-in-from-left-10 data-[side=right]:data-open:slide-in-from-right-10 data-[side=top]:data-open:slide-in-from-top-10 data-closed:animate-out data-closed:fade-out-0 data-[side=bottom]:data-closed:slide-out-to-bottom-10 data-[side=left]:data-closed:slide-out-to-left-10 data-[side=right]:data-closed:slide-out-to-right-10 data-[side=top]:data-closed:slide-out-to-top-10",
+			className
+		)}
+		{...restProps}
+	>
+		{@render children?.()}
+		{#if showCloseButton}
+			<SheetPrimitive.Close data-slot="sheet-close">
+				{#snippet child({ props })}
+					<Button variant="ghost" class="absolute top-3 right-3" size="icon-sm" {...props}>
+						<XIcon  />
+						<span class="sr-only">Close</span>
+					</Button>
+				{/snippet}
+			</SheetPrimitive.Close>
+		{/if}
+	</SheetPrimitive.Content>
+</SheetPortal>
+</file>
+
+<file path="src/lib/components/ui/sheet/sheet-description.svelte">
+<script lang="ts">
+	import { Dialog as SheetPrimitive } from "bits-ui";
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: SheetPrimitive.DescriptionProps = $props();
+</script>
+
+<SheetPrimitive.Description
+	bind:ref
+	data-slot="sheet-description"
+	class={cn("text-muted-foreground text-sm", className)}
+	{...restProps}
+/>
+</file>
+
+<file path="src/lib/components/ui/sheet/sheet-footer.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="sheet-footer"
+	class={cn("gap-2 p-4 mt-auto flex flex-col", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/sheet/sheet-header.svelte">
+<script lang="ts">
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="sheet-header"
+	class={cn("gap-0.5 p-4 flex flex-col", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>
+</file>
+
+<file path="src/lib/components/ui/sheet/sheet-overlay.svelte">
+<script lang="ts">
+	import { Dialog as SheetPrimitive } from "bits-ui";
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: SheetPrimitive.OverlayProps = $props();
+</script>
+
+<SheetPrimitive.Overlay
+	bind:ref
+	data-slot="sheet-overlay"
+	class={cn("bg-black/10 supports-backdrop-filter:backdrop-blur-xs fixed inset-0 z-50", className)}
+	{...restProps}
+/>
+</file>
+
+<file path="src/lib/components/ui/sheet/sheet-portal.svelte">
+<script lang="ts">
+	import { Dialog as SheetPrimitive } from "bits-ui";
+
+	let { ...restProps }: SheetPrimitive.PortalProps = $props();
+</script>
+
+<SheetPrimitive.Portal {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/sheet/sheet-title.svelte">
+<script lang="ts">
+	import { Dialog as SheetPrimitive } from "bits-ui";
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	}: SheetPrimitive.TitleProps = $props();
+</script>
+
+<SheetPrimitive.Title
+	bind:ref
+	data-slot="sheet-title"
+	class={cn("font-heading text-foreground text-base font-medium", className)}
+	{...restProps}
+/>
+</file>
+
+<file path="src/lib/components/ui/sheet/sheet-trigger.svelte">
+<script lang="ts">
+	import { Dialog as SheetPrimitive } from "bits-ui";
+
+	let { ref = $bindable(null), ...restProps }: SheetPrimitive.TriggerProps = $props();
+</script>
+
+<SheetPrimitive.Trigger bind:ref data-slot="sheet-trigger" {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/sheet/sheet.svelte">
+<script lang="ts">
+	import { Dialog as SheetPrimitive } from "bits-ui";
+
+	let { open = $bindable(false), ...restProps }: SheetPrimitive.RootProps = $props();
+</script>
+
+<SheetPrimitive.Root bind:open {...restProps} />
+</file>
+
+<file path="src/lib/components/ui/table/index.ts">
+import Root from "./table.svelte";
+import Body from "./table-body.svelte";
+import Caption from "./table-caption.svelte";
+import Cell from "./table-cell.svelte";
+import Footer from "./table-footer.svelte";
+import Head from "./table-head.svelte";
+import Header from "./table-header.svelte";
+import Row from "./table-row.svelte";
+
+export {
+	Root,
+	Body,
+	Caption,
+	Cell,
+	Footer,
+	Head,
+	Header,
+	Row,
+	//
+	Root as Table,
+	Body as TableBody,
+	Caption as TableCaption,
+	Cell as TableCell,
+	Footer as TableFooter,
+	Head as TableHead,
+	Header as TableHeader,
+	Row as TableRow,
+};
+</file>
+
+<file path="src/lib/components/ui/table/table-body.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLTableSectionElement>> = $props();
+</script>
+
+<tbody bind:this={ref} data-slot="table-body" class={cn("[&_tr:last-child]:border-0", className)} {...restProps}>
+	{@render children?.()}
+</tbody>
+</file>
+
+<file path="src/lib/components/ui/table/table-caption.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLElement>> = $props();
+</script>
+
+<caption
+	bind:this={ref}
+	data-slot="table-caption"
+	class={cn("text-muted-foreground mt-4 text-sm", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</caption>
+</file>
+
+<file path="src/lib/components/ui/table/table-cell.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLTdAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLTdAttributes> = $props();
+</script>
+
+<td bind:this={ref} data-slot="table-cell" class={cn("p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0", className)} {...restProps}>
+	{@render children?.()}
+</td>
+</file>
+
+<file path="src/lib/components/ui/table/table-footer.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLTableSectionElement>> = $props();
+</script>
+
+<tfoot
+	bind:this={ref}
+	data-slot="table-footer"
+	class={cn("bg-muted/50 border-t font-medium [&>tr]:last:border-b-0", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</tfoot>
+</file>
+
+<file path="src/lib/components/ui/table/table-head.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLThAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLThAttributes> = $props();
+</script>
+
+<th bind:this={ref} data-slot="table-head" class={cn("text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0", className)} {...restProps}>
+	{@render children?.()}
+</th>
+</file>
+
+<file path="src/lib/components/ui/table/table-header.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLTableSectionElement>> = $props();
+</script>
+
+<thead
+	bind:this={ref}
+	data-slot="table-header"
+	class={cn("[&_tr]:border-b", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</thead>
+</file>
+
+<file path="src/lib/components/ui/table/table-row.svelte">
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLTableRowElement>> = $props();
+</script>
+
+<tr bind:this={ref} data-slot="table-row" class={cn("hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors", className)} {...restProps}>
+	{@render children?.()}
+</tr>
+</file>
+
+<file path="src/lib/components/ui/table/table.svelte">
+<script lang="ts">
+	import type { HTMLTableAttributes } from "svelte/elements";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLTableAttributes> = $props();
+</script>
+
+<div data-slot="table-container" class="relative w-full overflow-x-auto">
+	<table bind:this={ref} data-slot="table" class={cn("w-full caption-bottom text-sm", className)} {...restProps}>
+		{@render children?.()}
+	</table>
+</div>
+</file>
+
+<file path="src/lib/stores/auth.ts">
+import { writable, derived } from 'svelte/store';
+import { browser } from '$app/environment';
+import { auth } from '$lib/firebase';
+import {
+  onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  type User
+} from 'firebase/auth';
+
+export const user = writable<User | null>(null);
+export const idToken = writable<string | null>(null);
+export const loading = writable<boolean>(browser ? true : false);
+export const isAuthenticated = derived(user, ($user) => $user !== null);
+
+if (browser) {
+  onAuthStateChanged(auth, async (firebaseUser) => {
+    user.set(firebaseUser);
+    loading.set(false);
+    if (firebaseUser) {
+      const token = await firebaseUser.getIdToken();
+      idToken.set(token);
+    } else {
+      idToken.set(null);
+    }
+  });
+}
+
+export async function signInWithGoogle() {
+  if (!browser) return;
+  const provider = new GoogleAuthProvider();
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (error) {
+    console.error('Sign in error:', error);
+    throw error;
+  }
+}
+
+export async function logout() {
+  if (!browser) return;
+  try {
+    await signOut(auth);
+    user.set(null);
+    idToken.set(null);
+  } catch (error) {
+    console.error('Sign out error:', error);
+    throw error;
+  }
+}
+</file>
+
+<file path="src/lib/stores/family.ts">
+import { writable, get } from 'svelte/store';
+import { doc, getDoc, setDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
+import { db } from '$lib/firebase';
+import { user } from './auth';
+
+export interface FamilyMember {
+  uid: string;
+  displayName: string;
+  email: string;
+  photoURL?: string;
+  role: 'admin' | 'member';
+}
+
+export interface Family {
+  id: string;
+  name: string;
+  inviteCode: string;
+  members: FamilyMember[];
+  createdBy: string;
+}
+
+export const family = writable<Family | null>(null);
+export const familyMembers = writable<FamilyMember[]>([]);
+export const familyCode = writable<string | null>(null);
+export const selectedMember = writable<FamilyMember | null>(null);
+
+function generateCode(): string {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+export async function loadFamily(): Promise<Family | null> {
+  const currentUser = get(user);
+  if (!currentUser) return null;
+
+  const userSnap = await getDoc(doc(db, 'users', currentUser.uid));
+  if (!userSnap.exists() || !userSnap.data().familyId) return null;
+
+  const familyId = userSnap.data().familyId;
+  const familySnap = await getDoc(doc(db, 'families', familyId));
+  if (!familySnap.exists()) return null;
+
+  const data = familySnap.data() as Family;
+  family.set(data);
+  familyCode.set(data.inviteCode);
+  familyMembers.set(data.members);
+  return data;
+}
+
+export async function createFamily(familyName: string, displayName: string): Promise<string> {
+  const currentUser = get(user);
+  if (!currentUser) throw new Error('Not logged in');
+
+  const code = generateCode();
+  const familyId = Date.now().toString();
+
+  const newMember: FamilyMember = {
+    uid: currentUser.uid,
+    displayName,
+    email: currentUser.email || '',
+    photoURL: currentUser.photoURL || undefined,
+    role: 'admin'
+  };
+
+  const newFamily: Family = {
+    id: familyId,
+    name: familyName,
+    inviteCode: code,
+    members: [newMember],
+    createdBy: currentUser.uid
+  };
+
+  await setDoc(doc(db, 'families', familyId), newFamily);
+  await setDoc(doc(db, 'users', currentUser.uid), {
+    familyId,
+    familyCode: code,
+    displayName,
+    email: currentUser.email,
+    joinedAt: new Date().toISOString()
+  }, { merge: true });
+
+  family.set(newFamily);
+  familyCode.set(code);
+  familyMembers.set([newMember]);
+  return code;
+}
+
+export async function joinFamily(code: string, displayName: string): Promise<void> {
+  const currentUser = get(user);
+  if (!currentUser) throw new Error('Not logged in');
+
+  const familiesSnap = await getDocs(collection(db, 'families'));
+  let targetFamily: Family | null = null;
+  let targetId = '';
+
+  familiesSnap.forEach(d => {
+    const data = d.data() as Family;
+    if (data.inviteCode === code.toUpperCase()) {
+      targetFamily = data;
+      targetId = d.id;
+    }
+  });
+
+  if (!targetFamily) throw new Error('Family code not found');
+
+  const newMember: FamilyMember = {
+    uid: currentUser.uid,
+    displayName,
+    email: currentUser.email || '',
+    photoURL: currentUser.photoURL || undefined,
+    role: 'member'
+  };
+
+  const updatedMembers = [...(targetFamily as Family).members, newMember];
+
+  await updateDoc(doc(db, 'families', targetId), { members: updatedMembers });
+  await setDoc(doc(db, 'users', currentUser.uid), {
+    familyId: targetId,
+    familyCode: code.toUpperCase(),
+    displayName,
+    email: currentUser.email,
+    joinedAt: new Date().toISOString()
+  }, { merge: true });
+
+  const updated = { ...(targetFamily as Family), members: updatedMembers };
+  family.set(updated);
+  familyCode.set(code.toUpperCase());
+  familyMembers.set(updatedMembers);
+}
+</file>
+
+<file path="src/lib/stores/portfolio.ts">
+import { writable } from 'svelte/store';
+import { auth, db } from '$lib/firebase';
+import { collection, doc, addDoc, deleteDoc, getDocs, serverTimestamp } from 'firebase/firestore';
+
+export interface Asset {
+	id: string;
+	type: 'STOCK' | 'GOLD' | 'MUTUAL_FUND' | 'PROPERTY' | 'FD' | 'NPS';
+	name: string;
+	symbol: string;
+	quantity: number;
+	buyPrice: number;
+	buyDate: string;
+	currentPrice: number;
+	currentValue: number;
+	returns: number;
+	returnsPc: number;
+	metadata: Record<string, unknown>;
+}
+
+export interface Portfolio {
+	id: string;
+	name: string;
+	totalValue: number;
+	totalInvested: number;
+	totalReturns: number;
+	returnsPc: number;
+	assets: Asset[];
+}
+
+export const portfolio = writable<Portfolio | null>(null);
+export const portfolioLoading = writable<boolean>(false);
+export const portfolioError = writable<string | null>(null);
+
+// Default portfolio id — adjust if you support multiple portfolios
+const DEFAULT_PORTFOLIO_ID = 'main';
+
+function getUserId(): string {
+	const user = auth.currentUser;
+	if (!user) throw new Error('Not authenticated');
+	return user.uid;
+}
+
+function assetsCollection(uid: string) {
+	return collection(db, 'users', uid, 'portfolios', DEFAULT_PORTFOLIO_ID, 'assets');
+}
+
+function computeAssetDerived(
+	a: Omit<Asset, 'id' | 'currentPrice' | 'currentValue' | 'returns' | 'returnsPc'>
+) {
+	// Placeholder: currentPrice = buyPrice until live pricing is wired up
+	const currentPrice = a.buyPrice;
+	const currentValue = currentPrice * a.quantity;
+	const invested = a.buyPrice * a.quantity;
+	const returns = currentValue - invested;
+	const returnsPc = invested > 0 ? (returns / invested) * 100 : 0;
+	return { currentPrice, currentValue, returns, returnsPc };
+}
+
+export async function fetchPortfolio() {
+	portfolioLoading.set(true);
+	portfolioError.set(null);
+	try {
+		const uid = getUserId();
+		const snap = await getDocs(assetsCollection(uid));
+
+		const assets: Asset[] = snap.docs.map((d) => {
+			const data = d.data() as Omit<Asset, 'id'>;
+			return { id: d.id, ...data };
+		});
+
+		const totalInvested = assets.reduce((sum, a) => sum + a.buyPrice * a.quantity, 0);
+		const totalValue = assets.reduce((sum, a) => sum + a.currentValue, 0);
+		const totalReturns = totalValue - totalInvested;
+		const returnsPc = totalInvested > 0 ? (totalReturns / totalInvested) * 100 : 0;
+
+		portfolio.set({
+			id: DEFAULT_PORTFOLIO_ID,
+			name: 'My Portfolio',
+			totalValue,
+			totalInvested,
+			totalReturns,
+			returnsPc,
+			assets
+		});
+	} catch (err) {
+		portfolioError.set('Could not load portfolio');
+		console.error(err);
+	} finally {
+		portfolioLoading.set(false);
+	}
+}
+
+export async function addAsset(
+	asset: Omit<Asset, 'id' | 'currentPrice' | 'currentValue' | 'returns' | 'returnsPc'>
+) {
+	try {
+		const uid = getUserId();
+		const derived = computeAssetDerived(asset);
+
+		const payload = {
+			...asset,
+			...derived,
+			metadata: asset.metadata ?? {},
+			createdAt: serverTimestamp()
+		};
+
+		await addDoc(assetsCollection(uid), payload);
+		await fetchPortfolio();
+	} catch (err) {
+		console.error(err);
+		throw err;
+	}
+}
+
+export async function deleteAsset(assetId: string) {
+	try {
+		const uid = getUserId();
+		await deleteDoc(doc(assetsCollection(uid), assetId));
+		await fetchPortfolio();
+	} catch (err) {
+		console.error(err);
+		throw err;
+	}
+}
+</file>
+
+<file path="src/lib/stores/stocks.ts">
+import { writable, get } from 'svelte/store';
+import {
+  collection, doc, setDoc, deleteDoc,
+  getDocs, updateDoc, getDoc, query, orderBy
+} from 'firebase/firestore';
+import { db } from '$lib/firebase';
+import { user } from './auth';
+
+export interface Stock {
+  id: string;
+  no: number;
+  shareName: string;
+  shortName: string;
+  buyQty: number;
+  buyAmt: number;
+  buyDate: string;
+  investedVal: number;
+  soldFrequency: number;
+  qtyHeld: number;
+  todaysRate: number;
+  currentVal: number;
+  plPercent: number;
+  stopLoss: number;
+  target: number;
+  status: string;
+  diffPL: number;
+  qtyNeedToSell: number;
+  soldQty: number;
+  soldDate: string;
+  releaseStatus: boolean;
+  lastUpdated: string;
+}
+
+export const stocks = writable<Stock[]>([]);
+export const stocksLoading = writable(false);
+export const pricesFetching = writable(false);
+export const pricesLastUpdated = writable<string>('');
+
+const TARGET_MULTIPLIERS = [1.10, 1.15, 1.20, 1.25];
+
+export function calculateStock(s: Partial<Stock>): Partial<Stock> {
+  const buyQty = s.buyQty || 0;
+  const buyAmt = s.buyAmt || 0;
+  const soldQty = s.soldQty || 0;
+  const soldFrequency = s.soldFrequency || 0;
+  const todaysRate = s.todaysRate || 0;
+
+  const investedVal = buyQty * buyAmt;
+  const qtyHeld = buyQty - soldQty;
+  const currentVal = todaysRate * qtyHeld;
+  const diffPL = currentVal - investedVal;
+  const plPercent = investedVal > 0 ? (diffPL / investedVal) * 100 : 0;
+  const stopLoss = investedVal * 0.9;
+  const multiplier = TARGET_MULTIPLIERS[Math.min(soldFrequency, TARGET_MULTIPLIERS.length - 1)];
+  const target = investedVal * multiplier;
+  const targetPct = Math.round((multiplier - 1) * 100);
+  const qtyNeedToSell = qtyHeld > 0 ? diffPL / qtyHeld : 0;
+
+  let status = "Don't sell";
+  if (currentVal >= target) status = `Sell now (+${targetPct}%)`;
+  else if (currentVal <= stopLoss) status = 'Stop loss';
+
+  return { ...s, investedVal, qtyHeld, currentVal, diffPL, plPercent, stopLoss, target, qtyNeedToSell, status };
+}
+
+export async function loadStocks(uid?: string): Promise<void> {
+  const currentUser = get(user);
+  const targetUid = uid || currentUser?.uid;
+  if (!targetUid) return;
+
+  stocksLoading.set(true);
+  try {
+    const q = query(collection(db, 'users', targetUid, 'stocks'), orderBy('no', 'asc'));
+    const snap = await getDocs(q);
+    const list: Stock[] = [];
+    snap.forEach(d => list.push({ id: d.id, ...d.data() } as Stock));
+    stocks.set(list);
+  } catch (e) {
+    console.error('loadStocks error:', e);
+    stocks.set([]);
+  } finally {
+    stocksLoading.set(false);
+  }
+}
+
+export async function addStock(data: Partial<Stock>, uid?: string): Promise<void> {
+  const currentUser = get(user);
+  const targetUid = uid || currentUser?.uid;
+  if (!targetUid) return;
+  const calculated = calculateStock(data);
+  const id = Date.now().toString();
+  await setDoc(doc(db, 'users', targetUid, 'stocks', id), {
+    ...calculated, id,
+    soldFrequency: 0, soldQty: 0, soldDate: '',
+    releaseStatus: false, lastUpdated: new Date().toISOString()
+  });
+  await loadStocks(targetUid);
+}
+
+export async function updateStock(id: string, data: Partial<Stock>, uid?: string): Promise<void> {
+  const currentUser = get(user);
+  const targetUid = uid || currentUser?.uid;
+  if (!targetUid) return;
+  const ref = doc(db, 'users', targetUid, 'stocks', id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const merged = { ...snap.data() as Stock, ...data };
+  const calculated = calculateStock(merged);
+  await updateDoc(ref, { ...calculated, lastUpdated: new Date().toISOString() });
+  await loadStocks(targetUid);
+}
+
+export async function sellStock(id: string, qty: number, uid?: string): Promise<void> {
+  const currentUser = get(user);
+  const targetUid = uid || currentUser?.uid;
+  if (!targetUid) return;
+  const ref = doc(db, 'users', targetUid, 'stocks', id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const existing = snap.data() as Stock;
+  const updated = calculateStock({
+    ...existing,
+    soldQty: (existing.soldQty || 0) + qty,
+    soldFrequency: (existing.soldFrequency || 0) + 1,
+    soldDate: new Date().toISOString().split('T')[0]
+  });
+  await updateDoc(ref, { ...updated, lastUpdated: new Date().toISOString() });
+  await loadStocks(targetUid);
+}
+
+export async function deleteStock(id: string, uid?: string): Promise<void> {
+  const currentUser = get(user);
+  const targetUid = uid || currentUser?.uid;
+  if (!targetUid) return;
+  await deleteDoc(doc(db, 'users', targetUid, 'stocks', id));
+  await loadStocks(targetUid);
+}
+
+export async function fetchLivePrices(uid?: string): Promise<{ updated: number; failed: string[] }> {
+  const currentUser = get(user);
+  const targetUid = uid || currentUser?.uid;
+  if (!targetUid) return { updated: 0, failed: [] };
+
+  pricesFetching.set(true);
+  const list = get(stocks);
+  let updated = 0;
+  const failed: string[] = [];
+
+  for (const stock of list) {
+    if (!stock.shortName) continue;
+    try {
+      const symbol = stock.shortName.toUpperCase() + '.NS';
+      const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`);
+      const data = await res.json();
+      const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+      if (price && price > 0) {
+        await updateStock(stock.id, { todaysRate: price }, targetUid);
+        updated++;
+      } else {
+        failed.push(stock.shortName);
+      }
+    } catch {
+      failed.push(stock.shortName);
+    }
+  }
+
+  pricesFetching.set(false);
+  pricesLastUpdated.set(new Date().toLocaleTimeString('en-IN'));
+  return { updated, failed };
+}
+</file>
+
+<file path="src/routes/+layout.svelte">
+<script lang="ts">
+	import '../app.css';
+	import { user, loading, logout } from '$lib/stores/auth';
+	import { family, loadFamily, selectedMember } from '$lib/stores/family';
+	import type { FamilyMember } from '$lib/stores/family';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
+
+	let { children } = $props();
+
+	const avatarColors = [
+		'bg-emerald-500',
+		'bg-blue-500',
+		'bg-purple-500',
+		'bg-orange-500',
+		'bg-pink-500',
+		'bg-yellow-500'
+	];
+
+	function colorFor(i: number) {
+		return avatarColors[i % avatarColors.length];
+	}
+	function initials(name: string) {
+		return name
+			.split(' ')
+			.map((n) => n[0])
+			.join('')
+			.toUpperCase()
+			.slice(0, 2);
+	}
+	function selectMember(member: FamilyMember) {
+		selectedMember.set(member);
+	}
+	function clearMember() {
+		selectedMember.set(null);
+	}
+
+	const navLinks = [
+		{
+			href: '/dashboard',
+			label: 'Home',
+			icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
+		},
+		{
+			href: '/stocks',
+			label: 'Stocks',
+			icon: 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z'
+		}
+	];
+
+	$effect(() => {
+		if (browser && !$loading && !$user && $page.url.pathname !== '/login') goto('/login');
+	});
+
+	$effect(() => {
+		if (browser && $user && !$loading) {
+			loadFamily().then((f) => {
+				if (!f && $page.url.pathname !== '/family' && $page.url.pathname !== '/login')
+					goto('/family');
+			});
+		}
+	});
+
+	const currentPath = $derived($page.url.pathname);
+</script>
+
+{#if $loading}
+	<div class="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+		<div class="text-center">
+			<div
+				class="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/20"
+			>
+				<span class="text-white font-bold text-xl">W</span>
+			</div>
+			<div
+				class="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"
+			></div>
+			<p class="text-white/40 text-xs">Loading WealthVault...</p>
+		</div>
+	</div>
+{:else if !$user && $page.url.pathname !== '/login'}
+	<div class="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+		<p class="text-white/40 text-sm">Redirecting...</p>
+	</div>
+{:else if $page.url.pathname === '/login' || $page.url.pathname === '/family'}
+	<div class="min-h-screen bg-[#0a0a0a]">
+		{@render children()}
+	</div>
+{:else if $user && $family && !$selectedMember}
+	<!-- Profile selector -->
+	<div class="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center px-4 py-12">
+		<div class="flex items-center gap-3 mb-10">
+			<div
+				class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/25"
+			>
+				<span class="text-white font-bold text-lg">W</span>
+			</div>
+			<span class="text-xl font-bold text-white">WealthVault</span>
+		</div>
+
+		<h1 class="text-xl font-bold text-white mb-1">Who's viewing?</h1>
+		<p class="text-white/40 text-sm mb-8">{$family.name}</p>
+
+		<div class="flex flex-wrap justify-center gap-3 max-w-lg">
+			{#each $family.members as member, i}
+				<button
+					onclick={() => selectMember(member)}
+					class="group flex flex-col items-center gap-2.5 p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 hover:border-emerald-500/40 transition w-32"
+				>
+					<div
+						class="w-14 h-14 rounded-full {colorFor(
+							i
+						)} flex items-center justify-center text-lg font-bold text-white group-hover:ring-2 group-hover:ring-emerald-500 transition overflow-hidden"
+					>
+						{#if member.photoURL}
+							<img
+								src={member.photoURL}
+								alt={member.displayName}
+								class="w-full h-full object-cover rounded-full"
+							/>
+						{:else}
+							{initials(member.displayName)}
+						{/if}
+					</div>
+					<span class="text-white/80 font-semibold text-xs">{member.displayName}</span>
+					{#if member.role === 'admin'}
+						<span
+							class="text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-medium"
+							>Admin</span
+						>
+					{/if}
+				</button>
+			{/each}
+		</div>
+
+		{#each $family.members as member}
+			{#if member.uid === $user?.uid && member.role === 'admin'}
+				<div class="mt-8 bg-white/5 border border-white/10 rounded-2xl px-6 py-3 text-center">
+					<p class="text-white/30 text-xs mb-1">Invite code</p>
+					<p class="text-emerald-400 font-mono font-bold text-xl tracking-widest">
+						{$family.inviteCode}
+					</p>
+				</div>
+			{/if}
+		{/each}
+
+		<button onclick={logout} class="mt-6 text-xs text-white/30 hover:text-white/60 transition"
+			>Sign Out</button
+		>
+	</div>
+{:else if $user && $family && $selectedMember}
+	<div class="min-h-screen bg-[#0a0a0a]">
+		<!-- Desktop top nav -->
+		<nav class="hidden md:flex bg-[#111111] border-b border-white/8 px-6 py-2.5 sticky top-0 z-30">
+			<div class="max-w-7xl mx-auto w-full flex items-center justify-between">
+				<div class="flex items-center gap-5">
+					<div class="flex items-center gap-2">
+						<div
+							class="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center shadow-sm shadow-emerald-500/30"
+						>
+							<span class="text-white font-bold text-xs">W</span>
+						</div>
+						<span class="text-white font-bold text-sm">WealthVault</span>
+					</div>
+					<div class="flex gap-0.5 text-sm">
+						{#each navLinks as link}
+							<a
+								href={link.href}
+								class="px-3 py-1.5 rounded-xl font-medium transition text-xs
+                  {currentPath === link.href
+									? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
+									: 'text-white/40 hover:text-white hover:bg-white/5'}">{link.label}</a
+							>
+						{/each}
+					</div>
+				</div>
+				<div class="flex items-center gap-2">
+					<button
+						onclick={clearMember}
+						class="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl transition border border-white/8"
+					>
+						<div
+							class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-bold text-white"
+						>
+							{initials($selectedMember.displayName)}
+						</div>
+						<span class="text-xs text-white/70 font-medium">{$selectedMember.displayName}</span>
+						<svg
+							class="w-3 h-3 text-white/30"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M19 9l-7 7-7-7"
+							/>
+						</svg>
+					</button>
+					<button
+						onclick={logout}
+						aria-label="Sign out"
+						class="flex items-center gap-1.5 text-xs bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-white/40 px-3 py-1.5 rounded-xl transition border border-white/8 font-medium"
+					>
+						<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+							/>
+						</svg>
+						Sign Out
+					</button>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Mobile top header — compact -->
+		<header
+			class="md:hidden bg-[#111111] px-4 pt-2 pb-2 sticky top-0 z-30 border-b border-white/8"
+		>
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-white/30 text-[10px] leading-none mb-0.5">Welcome back 👋</p>
+					<p class="text-white font-bold text-base leading-tight">{$selectedMember.displayName}</p>
+				</div>
+				<div class="flex items-center gap-1.5">
+					<button
+						onclick={clearMember}
+						class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-bold text-white shadow-sm shadow-emerald-500/30"
+					>
+						{initials($selectedMember.displayName)}
+					</button>
+					<button
+						onclick={logout}
+						aria-label="Sign out"
+						class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center"
+					>
+						<svg
+							class="w-3.5 h-3.5 text-white/40"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+							/>
+						</svg>
+					</button>
+				</div>
+			</div>
+		</header>
+
+		<!-- Page content -->
+		<main class="max-w-full mx-auto px-2 md:px-4 py-3 md:py-4 pb-24">
+			{@render children()}
+		</main>
+
+		<!-- Mobile bottom nav — compact -->
+		<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#111111] border-t border-white/8 z-30">
+			<div class="flex items-center justify-around px-4 pt-1 pb-2">
+				{#each navLinks as link}
+					{@const active = currentPath === link.href}
+					<a
+						href={link.href}
+						class="flex flex-col items-center gap-1 px-5 py-1 rounded-xl transition {active
+							? 'text-emerald-400'
+							: 'text-white/30'}"
+					>
+						<div class="relative">
+							{#if active}
+								<div class="absolute inset-0 bg-emerald-500/20 rounded-lg blur-sm"></div>
+							{/if}
+							<svg
+								class="w-4 h-4 relative"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								stroke-width="1.8"
+							>
+								<path stroke-linecap="round" stroke-linejoin="round" d={link.icon} />
+							</svg>
+						</div>
+						<span class="text-[10px] font-medium">{link.label}</span>
+					</a>
+				{/each}
+			</div>
+		</nav>
+	</div>
+{:else}
+	<div class="min-h-screen bg-[#0a0a0a]">
+		{@render children()}
+	</div>
+{/if}
+</file>
+
+<file path="src/routes/+page.svelte">
+<script lang="ts">
+  import { goto } from '$app/navigation';
+  import { user } from '$lib/stores/auth';
+
+  $effect(() => {
+    if ($user) goto('/dashboard');
+  });
+</script>
+
+<div class="min-h-screen bg-gray-50 flex items-center justify-center">
+  <div class="text-center px-6">
+    <div class="w-16 h-16 rounded-3xl bg-emerald-500 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-200">
+      <span class="text-white font-bold text-2xl">W</span>
+    </div>
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">WealthVault</h1>
+    <p class="text-gray-400 mb-8">Family portfolio tracker for Indian families</p>
+    <a href="/login"
+      class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-8 py-3 rounded-2xl transition">
+      Sign In
+    </a>
+  </div>
+</div>
+</file>
+
+<file path="src/routes/dashboard/+page.svelte">
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { portfolio, fetchPortfolio, portfolioLoading } from '$lib/stores/portfolio';
+	import { user, idToken } from '$lib/stores/auth';
+
+	onMount(() => {
+		const unsub = idToken.subscribe((token) => {
+			if (token) {
+				fetchPortfolio();
+				unsub();
+			}
+		});
+	});
+
+	function formatINR(value: number): string {
+		return new Intl.NumberFormat('en-IN', {
+			style: 'currency',
+			currency: 'INR',
+			maximumFractionDigits: 0
+		}).format(value);
+	}
+
+	function assetColor(type: string): string {
+		const colors: Record<string, string> = {
+			STOCK: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+			MUTUAL_FUND: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
+			GOLD: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
+			PROPERTY: 'bg-orange-500/10 text-orange-400 border border-orange-500/20',
+			FD: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+			NPS: 'bg-pink-500/10 text-pink-400 border border-pink-500/20'
+		};
+		return colors[type] || 'bg-white/5 text-white/60 border border-white/10';
+	}
+</script>
+
+<div class="space-y-4">
+	<div>
+		<h1 class="text-lg font-bold text-white">
+			Welcome back, {$user?.displayName?.split(' ')[0]} 👋
+		</h1>
+		<p class="text-white/40 text-xs mt-0.5">Here's your portfolio overview</p>
+	</div>
+
+	{#if $portfolioLoading}
+		<div class="flex items-center justify-center py-20">
+			<div
+				class="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"
+			></div>
+		</div>
+	{:else if $portfolio}
+		<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+			<div class="bg-[#161616] border border-white/8 rounded-xl p-3">
+				<p class="text-white/40 text-xs font-medium">Total Value</p>
+				<p class="text-white font-bold text-base mt-0.5">{formatINR($portfolio.totalValue)}</p>
+			</div>
+			<div class="bg-[#161616] border border-white/8 rounded-xl p-3">
+				<p class="text-white/40 text-xs font-medium">Total Invested</p>
+				<p class="text-white font-bold text-base mt-0.5">{formatINR($portfolio.totalInvested)}</p>
+			</div>
+			<div class="bg-[#161616] border border-white/8 rounded-xl p-3">
+				<p class="text-white/40 text-xs font-medium">Total Returns</p>
+				<p
+					class="font-bold text-base mt-0.5 {$portfolio.totalReturns >= 0
+						? 'text-emerald-400'
+						: 'text-red-400'}"
+				>
+					{formatINR($portfolio.totalReturns)}
+				</p>
+			</div>
+			<div class="bg-[#161616] border border-white/8 rounded-xl p-3">
+				<p class="text-white/40 text-xs font-medium">Returns %</p>
+				<p
+					class="font-bold text-base mt-0.5 {$portfolio.returnsPc >= 0
+						? 'text-emerald-400'
+						: 'text-red-400'}"
+				>
+					{$portfolio.returnsPc.toFixed(2)}%
+				</p>
+			</div>
+		</div>
+
+		<div class="bg-[#111] border border-white/8 rounded-2xl overflow-hidden">
+			<div class="px-4 py-3 border-b border-white/8 flex items-center justify-between">
+				<h2 class="font-bold text-white text-sm">Your Assets</h2>
+				<a href="/stocks" class="text-xs text-emerald-400 hover:text-emerald-300 font-medium"
+					>+ Add Asset</a
+				>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="w-full text-xs">
+					<thead>
+						<tr class="text-white/40 border-b border-white/8 bg-[#0d0d0d] text-left">
+							<th class="px-4 py-2.5 font-semibold">Asset</th>
+							<th class="px-4 py-2.5 font-semibold">Type</th>
+							<th class="px-4 py-2.5 font-semibold text-right">Invested</th>
+							<th class="px-4 py-2.5 font-semibold text-right">Current</th>
+							<th class="px-4 py-2.5 font-semibold text-right">Returns</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each $portfolio.assets as asset}
+							<tr class="border-b border-white/5 hover:bg-white/3 transition">
+								<td class="px-4 py-3">
+									<div class="font-semibold text-white">{asset.name}</div>
+									<div class="text-white/30 text-xs">{asset.symbol}</div>
+								</td>
+								<td class="px-4 py-3">
+									<span
+										class="px-2 py-0.5 rounded-full text-xs font-medium {assetColor(asset.type)}"
+										>{asset.type}</span
+									>
+								</td>
+								<td class="px-4 py-3 text-right text-white/60"
+									>{formatINR(asset.buyPrice * asset.quantity)}</td
+								>
+								<td class="px-4 py-3 text-right text-white font-medium"
+									>{formatINR(asset.currentValue)}</td
+								>
+								<td
+									class="px-4 py-3 text-right font-semibold {asset.returnsPc >= 0
+										? 'text-emerald-400'
+										: 'text-red-400'}"
+								>
+									{asset.returnsPc.toFixed(2)}%
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	{:else}
+		<div class="text-center py-16 px-6">
+			<div
+				class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3"
+			>
+				<svg
+					class="w-6 h-6 text-emerald-400"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					stroke-width="1.5"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
+					/>
+				</svg>
+			</div>
+			<p class="text-white font-semibold text-sm mb-1">No assets yet</p>
+			<p class="text-white/40 text-xs mb-3">Start by adding your first asset</p>
+			<a
+				href="/stocks"
+				class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-5 py-2 rounded-xl transition text-sm"
+			>
+				+ Add Asset
+			</a>
+		</div>
+	{/if}
+</div>
+</file>
+
+<file path="src/routes/family/+page.svelte">
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
+  import { family, familyCode, familyMembers, createFamily, joinFamily, loadFamily } from '$lib/stores/family';
+  import { user } from '$lib/stores/auth';
+
+  let mode = $state<'none' | 'create' | 'join'>('none');
+  let familyName = $state('');
+  let memberName = $state('');
+  let joinCode = $state('');
+  let loading = $state(false);
+  let error = $state('');
+  let copied = $state(false);
+  let pageReady = $state(false);
+
+  onMount(async () => {
+    await loadFamily();
+    pageReady = true;
+  });
+
+  async function handleCreate() {
+    if (!familyName || !memberName) return;
+    loading = true; error = '';
+    try {
+      await createFamily(familyName, memberName);
+      await loadFamily();
+      goto('/dashboard');
+    } catch (e: any) {
+      error = e.message;
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function handleJoin() {
+    if (!joinCode || !memberName) return;
+    loading = true; error = '';
+    try {
+      await joinFamily(joinCode, memberName);
+      await loadFamily();
+      goto('/dashboard');
+    } catch (e: any) {
+      error = e.message;
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function copyCode() {
+    if ($familyCode) {
+      await navigator.clipboard.writeText($familyCode);
+      copied = true;
+      setTimeout(() => copied = false, 2000);
+    }
+  }
+</script>
+
+{#if !pageReady}
+  <div class="flex items-center justify-center py-32">
+    <div class="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+
+{:else if $family}
+  <div class="max-w-lg mx-auto space-y-4 px-4 py-6">
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-bold text-2xl flex-shrink-0">
+          {$family.name.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <h1 class="text-gray-900 font-bold text-xl">{$family.name}</h1>
+          <p class="text-gray-400 text-sm">{$familyMembers.length} member{$familyMembers.length !== 1 ? 's' : ''}</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+      <p class="text-gray-900 font-semibold mb-1">Family Code</p>
+      <p class="text-gray-400 text-sm mb-4">Share this code to invite family members</p>
+      <div class="bg-gray-50 rounded-2xl p-4 flex items-center justify-between gap-3">
+        <span class="font-mono text-emerald-500 text-2xl font-bold tracking-widest">{$familyCode}</span>
+        <button onclick={copyCode}
+          class="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-4 py-2 rounded-2xl transition">
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+      </div>
+    </div>
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+      <p class="text-gray-900 font-semibold mb-4">Members ({$familyMembers.length})</p>
+      <div class="space-y-3">
+        {#each $familyMembers as member}
+          <div class="flex items-center gap-3 bg-gray-50 rounded-2xl px-4 py-3">
+            <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+              {member.displayName.charAt(0).toUpperCase()}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-gray-900 text-sm font-semibold truncate">{member.displayName}</p>
+              <p class="text-gray-400 text-xs truncate">{member.email}</p>
+            </div>
+            {#if member.uid === $user?.uid}
+              <span class="text-xs bg-emerald-500 text-white px-2 py-0.5 rounded-full">You</span>
+            {/if}
+          </div>
+        {/each}
+      </div>
+    </div>
+  </div>
+
+{:else}
+  <div class="max-w-md mx-auto px-4 py-6">
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+      <h1 class="text-gray-900 font-bold text-xl mb-1">Family Group</h1>
+      <p class="text-gray-400 text-sm mb-6">Create a new family group or join one with an invite code.</p>
+      {#if mode === 'none'}
+        <div class="flex gap-3">
+          <button onclick={() => mode = 'create'}
+            class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-2xl transition">
+            Create Family
+          </button>
+          <button onclick={() => mode = 'join'}
+            class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-2xl transition">
+            Join with Code
+          </button>
+        </div>
+      {:else if mode === 'create'}
+        <div class="space-y-3">
+          <div>
+            <label for="memberName1" class="text-gray-700 text-sm font-medium block mb-1">Your Name</label>
+            <input id="memberName1" type="text" bind:value={memberName} placeholder="e.g. Giri"
+              class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 text-sm focus:border-emerald-500 focus:outline-none"/>
+          </div>
+          <div>
+            <label for="familyName" class="text-gray-700 text-sm font-medium block mb-1">Family Name</label>
+            <input id="familyName" type="text" bind:value={familyName} placeholder="e.g. Giri Family"
+              class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 text-sm focus:border-emerald-500 focus:outline-none"/>
+          </div>
+          {#if error}<p class="text-red-500 text-xs">{error}</p>{/if}
+          <div class="flex gap-3 pt-2">
+            <button onclick={() => mode = 'none'}
+              class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-2xl transition">Back</button>
+            <button onclick={handleCreate} disabled={loading}
+              class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-2xl transition disabled:opacity-50">
+              {loading ? 'Creating...' : 'Create'}
+            </button>
+          </div>
+        </div>
+      {:else if mode === 'join'}
+        <div class="space-y-3">
+          <div>
+            <label for="memberName2" class="text-gray-700 text-sm font-medium block mb-1">Your Name</label>
+            <input id="memberName2" type="text" bind:value={memberName} placeholder="e.g. Suruthi"
+              class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 text-sm focus:border-emerald-500 focus:outline-none"/>
+          </div>
+          <div>
+            <label for="joinCode" class="text-gray-700 text-sm font-medium block mb-1">Family Code</label>
+            <input id="joinCode" type="text" bind:value={joinCode} placeholder="e.g. 92ERE4"
+              class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 text-sm focus:border-emerald-500 focus:outline-none uppercase"/>
+          </div>
+          {#if error}<p class="text-red-500 text-xs">{error}</p>{/if}
+          <div class="flex gap-3 pt-2">
+            <button onclick={() => mode = 'none'}
+              class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-2xl transition">Back</button>
+            <button onclick={handleJoin} disabled={loading}
+              class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-2xl transition disabled:opacity-50">
+              {loading ? 'Joining...' : 'Join'}
+            </button>
+          </div>
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}
+</file>
+
+<file path="src/routes/layout.css">
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+</file>
+
+<file path="src/routes/login/+page.svelte">
+<script lang="ts">
+  import { signInWithGoogle } from '$lib/stores/auth';
+  import { goto } from '$app/navigation';
+  import { user } from '$lib/stores/auth';
+
+  $effect(() => {
+    if ($user) goto('/dashboard');
+  });
+
+  let error = $state('');
+  let signingIn = $state(false);
+
+  async function handleGoogleSignIn() {
+    signingIn = true;
+    error = '';
+    try {
+      await signInWithGoogle();
+    } catch (e) {
+      console.error('Sign in error:', e);
+      error = 'Sign in failed. Please try again.';
+      signingIn = false;
+    }
+  }
+</script>
+
+<div class="min-h-screen bg-gray-950 flex items-center justify-center">
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-10 w-full max-w-md text-center">
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-emerald-400 mb-2">WealthVault</h1>
+      <p class="text-gray-400">Your complete Indian portfolio tracker</p>
+    </div>
+    <div class="space-y-3 text-left mb-8">
+      {#each ['Stocks (NSE/BSE)', 'Mutual Funds (SIP + XIRR)', 'Gold (MCX rates)', 'Property & FD', 'LTCG Tax Calculator'] as feature}
+        <div class="flex items-center gap-3 text-sm text-gray-300">
+          <span class="text-emerald-400">✓</span>
+          {feature}
+        </div>
+      {/each}
+    </div>
+    {#if error}
+      <p class="text-red-400 text-sm mb-4">{error}</p>
+    {/if}
+    <button
+      onclick={handleGoogleSignIn}
+      disabled={signingIn}
+      class="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-semibold py-3 px-6 rounded-xl transition flex items-center justify-center gap-3"
+    >
+      {#if signingIn}
+        <div class="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+        Signing in...
+      {:else}
+        Continue with Google
+      {/if}
+    </button>
+    <p class="text-xs text-gray-600 mt-6">Your data is encrypted and stored securely in Firebase</p>
+  </div>
+</div>
+</file>
+
+<file path="src/routes/stocks/+page.svelte">
+<script lang="ts">
+import { onMount } from 'svelte';
+import { user } from '$lib/stores/auth';
+import {
+stocks,
+stocksLoading,
+pricesFetching,
+pricesLastUpdated,
+loadStocks,
+addStock,
+updateStock,
+sellStock,
+deleteStock,
+fetchLivePrices
+} from '$lib/stores/stocks';
+import { family, loadFamily } from '$lib/stores/family';
+import StockCard from '$lib/components/StockCard.svelte';
+import StockModals from '$lib/components/StockModals.svelte';
+
+let showAddModal = $state(false);
+let showSellModal = $state(false);
+let showRateModal = $state(false);
+let showTargetsPanel = $state(false);
+let showFilterMenu = $state(false);
+let selectedStock = $state<any>(null);
+let sellQty = $state(0);
+let sellRate = $state(0);
+let sellDate = $state(new Date().toISOString().split('T')[0]);
+let newRate = $state(0);
+let viewingUid = $state('');
+let fetchResult = $state<{ updated: number; failed: string[] } | null>(null);
+let isBuyMore = $state(false);
+let filterShare = $state('');
+let expandedRow = $state<string | null>(null);
+let filterPLPreset = $state('all');
+
+let form = $state({
+no: 0,
+shareName: '',
+shortName: '',
+buyQty: 0,
+buyAmt: 0,
+buyDate: '',
+todaysRate: 0
+});
+
+onMount(async () => {
+await loadFamily();
+viewingUid = $user?.uid || '';
+await loadStocks(viewingUid);
+});
+
+async function handleRefreshPrices() {
+fetchResult = null;
+const result = await fetchLivePrices(viewingUid || undefined);
+fetchResult = result;
+setTimeout(() => (fetchResult = null), 6000);
+}
+
+async function handleAddStock() {
+if (!form.shareName || !form.buyQty || !form.buyAmt) return;
+await addStock({ ...form }, viewingUid || undefined);
+showAddModal = false;
+isBuyMore = false;
+form = { no: 0, shareName: '', shortName: '', buyQty: 0, buyAmt: 0, buyDate: '', todaysRate: 0 };
+}
+
+function openBuyMore(stock: any) {
+isBuyMore = true;
+form = {
+no: stock.no,
+shareName: stock.shareName,
+shortName: stock.shortName,
+buyQty: 0,
+buyAmt: stock.buyAmt,
+buyDate: new Date().toISOString().split('T')[0],
+todaysRate: stock.todaysRate
+};
+showAddModal = true;
+}
+
+async function handleSell() {
+if (!selectedStock || sellQty <= 0) return;
+await sellStock(selectedStock.id, sellQty, viewingUid || undefined, sellRate, sellDate);
+showSellModal = false;
+sellQty = 0;
+sellRate = 0;
+sellDate = new Date().toISOString().split('T')[0];
+}
+
+async function handleRateUpdate() {
+if (!selectedStock || newRate <= 0) return;
+await updateStock(selectedStock.id, { todaysRate: newRate }, viewingUid || undefined);
+showRateModal = false;
+newRate = 0;
+}
+
+async function switchToMember(uid: string) {
+viewingUid = uid;
+await loadStocks(uid);
+}
+
+function openSell(stock: any) {
+selectedStock = stock;
+sellRate = stock.todaysRate;
+showSellModal = true;
+}
+
+function openRate(stock: any) {
+selectedStock = stock;
+newRate = stock.todaysRate;
+showRateModal = true;
+}
+
+function sellFromTargets(stock: any) {
+selectedStock = stock;
+sellRate = stock.todaysRate;
+showSellModal = true;
+showTargetsPanel = false;
+}
+
+function formatINR(val: number): string {
+if (!val && val !== 0) return '₹0';
+return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
+}
+
+function statusClass(status: string): string {
+if (status?.startsWith('Sell')) return 'text-emerald-600 font-semibold';
+if (status === 'Stop loss') return 'text-red-500 font-semibold';
+return 'text-yellow-600';
+}
+
+function plClass(val: number): string {
+return val >= 0 ? 'text-emerald-600' : 'text-red-500';
+}
+
+const filteredStocks = $derived(
+$stocks.filter((s) => {
+const nameMatch = filterShare === '' || s.shareName.toLowerCase().includes(filterShare.toLowerCase()) || s.shortName.toLowerCase().includes(filterShare.toLowerCase());
+let plMatch = true;
+if (filterPLPreset === 'targets') plMatch = s.plPercent >= 10;
+if (filterPLPreset === 'loss') plMatch = s.plPercent < 0;
+if (filterPLPreset === 'stoploss') plMatch = s.status === 'Stop loss';
+return nameMatch && plMatch;
+})
+);
+
+const targetStocks = $derived($stocks.filter((s) => s.plPercent >= 10));
+const totalInvested = $derived(filteredStocks.reduce((s, x) => s + (x.investedVal || 0), 0));
+const totalCurrent = $derived(filteredStocks.reduce((s, x) => s + (x.currentVal || 0), 0));
+const totalPL = $derived(totalCurrent - totalInvested);
+const totalPLPc = $derived(totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0);
+const isOwnStocks = $derived(viewingUid === $user?.uid);
+</script>
+<div class="space-y-3 pb-0 min-h-0">
+	<!-- Header -->
+	<div class="flex items-center justify-between flex-wrap gap-2">
+		<div>
+			<h1 class="text-lg font-bold text-white">Stock Portfolio</h1>
+			<p class="text-white/40 text-xs mt-0.5">
+				{isOwnStocks
+					? 'NSE/BSE holdings tracker'
+					: 'Viewing: ' + ($family?.members.find((m) => m.uid === viewingUid)?.displayName || '')}
+			</p>
+		</div>
+		<div class="flex items-center gap-1.5 flex-wrap">
+			{#if targetStocks.length > 0}
+				<button
+					onclick={() => (showTargetsPanel = true)}
+					class="flex items-center gap-1 bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/20 text-yellow-400 font-medium px-2.5 py-1 rounded-lg transition text-xs"
+				>
+					🏆 {targetStocks.length} Target{targetStocks.length !== 1 ? 's' : ''} ≥10%
+				</button>
+			{/if}
+			<div class="flex flex-col items-end">
+				<button
+					onclick={handleRefreshPrices}
+					disabled={$pricesFetching || $stocks.length === 0}
+					class="flex items-center gap-1.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-40 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+				>
+					{#if $pricesFetching}
+						<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
+							/>
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+						</svg>
+						Fetching...
+					{:else}
+						<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+							/>
+						</svg>
+						Refresh Prices
+					{/if}
+				</button>
+				{#if $pricesLastUpdated}
+					<span class="text-white/30 text-[10px] mt-0.5">Updated {$pricesLastUpdated}</span>
+				{/if}
+			</div>
+			{#if isOwnStocks}
+				<button
+					onclick={() => {
+						isBuyMore = false;
+						showAddModal = true;
+					}}
+					class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-lg transition text-xs"
+				>
+					+ Add Stock
+				</button>
+			{/if}
+		</div>
+	</div>
+
+	{#if fetchResult}
+		<div
+			class="rounded-xl px-3 py-2 text-xs
+			{fetchResult.failed.length === 0
+				? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+				: 'bg-yellow-500/10 border border-yellow-500/20 text-yellow-400'}"
+		>
+			{#if fetchResult.failed.length === 0}
+				✓ Updated {fetchResult.updated} stock{fetchResult.updated !== 1 ? 's' : ''} with live NSE prices
+			{:else}
+				✓ Updated {fetchResult.updated} stocks. Could not fetch: {fetchResult.failed.join(', ')}
+			{/if}
+		</div>
+	{/if}
+
+	<!-- Member tabs -->
+	{#if $family && $family.members.length > 1}
+		<div class="flex gap-1.5 overflow-x-auto pb-1">
+			{#each $family.members as member}
+				<button
+					onclick={() => switchToMember(member.uid)}
+					class="px-3 py-1 rounded-lg text-xs font-medium transition whitespace-nowrap
+					{viewingUid === member.uid
+						? 'bg-emerald-500 text-white'
+						: 'bg-white/8 text-white/50 border border-white/8 hover:bg-white/12'}"
+				>
+					{member.displayName}{member.uid === $user?.uid ? ' (You)' : ''}
+				</button>
+			{/each}
+		</div>
+	{/if}
+
+	<!-- Filter bar -->
+	<div class="flex flex-wrap gap-2 items-center">
+		<div class="relative flex-1 min-w-[180px] max-w-xs">
+			<input
+				type="text"
+				bind:value={filterShare}
+				placeholder="🔍 Search share or symbol..."
+				class="w-full bg-[#161616] border border-white/10 rounded-xl px-3 py-1.5 text-white text-xs focus:border-emerald-500 outline-none placeholder:text-white/30"
+			/>
+			{#if filterShare}
+				<button
+					onclick={() => (filterShare = '')}
+					class="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 text-base leading-none"
+					>✕</button
+				>
+			{/if}
+		</div>
+		<div class="relative">
+			<button
+				onclick={() => (showFilterMenu = !showFilterMenu)}
+				class="flex items-center gap-2 bg-[#161616] border border-white/10 hover:border-emerald-500/40 rounded-xl px-3 py-1.5 text-xs transition min-w-[130px] justify-between"
+			>
+				<span>
+					{#if filterPLPreset === 'targets'}<span class="text-emerald-400">📈 P&L ≥ 10%</span>
+					{:else if filterPLPreset === 'loss'}<span class="text-red-400">📉 In Loss</span>
+					{:else if filterPLPreset === 'stoploss'}<span class="text-red-400">🛑 Stop Loss</span>
+					{:else}<span class="text-white/50">📊 All Stocks</span>{/if}
+				</span>
+				<svg
+					class="w-3 h-3 text-white/30 {showFilterMenu ? 'rotate-180' : ''} transition-transform"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M19 9l-7 7-7-7"
+					/>
+				</svg>
+			</button>
+			{#if showFilterMenu}
+				<div
+					class="absolute top-full mt-1 left-0 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-lg z-20 min-w-[160px] overflow-hidden"
+				>
+					{#each [{ val: 'all', label: '📊 All Stocks', cls: 'text-white/60' }, { val: 'targets', label: '📈 P&L ≥ 10%', cls: 'text-emerald-400' }, { val: 'loss', label: '📉 In Loss', cls: 'text-red-400' }, { val: 'stoploss', label: '🛑 Stop Loss', cls: 'text-red-400' }] as opt}
+						<button
+							onclick={() => {
+								filterPLPreset = opt.val;
+								showFilterMenu = false;
+							}}
+							class="w-full text-left px-3 py-2.5 text-xs hover:bg-white/5 transition {opt.cls} {filterPLPreset ===
+							opt.val
+								? 'bg-white/5 font-semibold'
+								: ''}"
+						>
+							{opt.label}
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
+		<div class="flex items-center gap-2">
+			{#if filterPLPreset !== 'all' || filterShare}
+				<button
+					onclick={() => {
+						filterShare = '';
+						filterPLPreset = 'all';
+					}}
+					class="text-xs text-white/40 hover:text-white/70 bg-white/5 hover:bg-white/10 px-2.5 py-1.5 rounded-lg transition"
+				>
+					Clear
+				</button>
+			{/if}
+			<span class="text-white/30 text-xs">{filteredStocks.length} of {$stocks.length}</span>
+		</div>
+	</div>
+
+	<!-- Summary cards -->
+	<div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+		<div class="bg-[#161616] border border-white/8 rounded-xl p-3">
+			<p class="text-white/40 text-xs font-medium">Total Invested</p>
+			<p class="text-white font-bold text-base mt-0.5">{formatINR(totalInvested)}</p>
+		</div>
+		<div class="bg-[#161616] border border-white/8 rounded-xl p-3">
+			<p class="text-white/40 text-xs font-medium">Current Value</p>
+			<p class="text-white font-bold text-base mt-0.5">{formatINR(totalCurrent)}</p>
+		</div>
+		<div class="bg-[#161616] border border-white/8 rounded-xl p-3">
+			<p class="text-white/40 text-xs font-medium">Total P&L</p>
+			<p class="font-bold text-base mt-0.5 {plClass(totalPL)}">{formatINR(totalPL)}</p>
+		</div>
+		<div class="bg-[#161616] border border-white/8 rounded-xl p-3">
+			<p class="text-white/40 text-xs font-medium">Returns</p>
+			<p class="font-bold text-base mt-0.5 {plClass(totalPLPc)}">{totalPLPc.toFixed(2)}%</p>
+		</div>
+	</div>
+
+	<!-- Desktop table + Mobile cards -->
+	<div class="bg-[#111] border border-white/8 rounded-2xl overflow-hidden">
+		{#if $stocksLoading}
+			<div class="flex items-center justify-center py-20">
+				<div
+					class="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"
+				></div>
+			</div>
+		{:else if filteredStocks.length === 0}
+			<div class="text-center py-16 px-6">
+				<div
+					class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3"
+				>
+					<svg
+						class="w-6 h-6 text-emerald-400"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						stroke-width="1.5"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+						/>
+					</svg>
+				</div>
+				<p class="text-white font-semibold text-sm mb-1">
+					{$stocks.length === 0 ? 'No stocks yet' : 'No stocks match the filter'}
+				</p>
+				{#if filterPLPreset !== 'all' || filterShare}
+					<button
+						onclick={() => {
+							filterShare = '';
+							filterPLPreset = 'all';
+						}}
+						class="text-emerald-400 text-xs hover:underline">Clear filters</button
+					>
+				{:else if isOwnStocks}
+					<p class="text-white/40 text-xs mb-3">Add your first NSE/BSE stock to start tracking</p>
+					<button
+						onclick={() => (showAddModal = true)}
+						class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-5 py-2 rounded-xl transition text-sm"
+					>
+						+ Add First Stock
+					</button>
+				{/if}
+			</div>
+		{:else}
+			<!-- Desktop table -->
+			<div class="hidden md:block overflow-x-auto">
+				<table class="w-full text-xs">
+					<thead>
+						<tr class="text-white/40 border-b border-white/8 bg-[#0d0d0d] text-left">
+							<th class="px-3 py-2.5 font-semibold">No</th>
+							<th class="px-3 py-2.5 font-semibold">Share</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Buy Qty</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Buy Amt</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Invested Val</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Sold Freq</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Qty Held</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Today Rate</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Current Val</th>
+							<th class="px-3 py-2.5 font-semibold text-right">P/L%</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Stop Loss</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Target</th>
+							<th class="px-3 py-2.5 font-semibold text-center">Status</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Diff P/L</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Qty/Sell</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Sold Qty</th>
+							<th class="px-3 py-2.5 font-semibold text-right">Sold Date</th>
+							<th class="px-3 py-2.5 font-semibold text-center">Released</th>
+							{#if isOwnStocks}<th class="px-3 py-2.5 font-semibold text-center">Actions</th>{/if}
+						</tr>
+					</thead>
+					<tbody>
+						{#each filteredStocks as stock}
+							<tr
+								class="border-b border-white/5 hover:bg-white/3 transition
+								{stock.plPercent >= 10 ? 'border-l-2 border-l-emerald-500' : ''}
+								{stock.status === 'Stop loss' ? 'border-l-2 border-l-red-500' : ''}"
+							>
+								<td class="px-3 py-2.5 text-white/30">{stock.no}</td>
+								<td class="px-3 py-2.5">
+									<div class="font-semibold text-white whitespace-nowrap flex items-center gap-1">
+										{stock.shareName}
+										{#if stock.plPercent >= 10}<span class="text-yellow-400">🏆</span>{/if}
+										{#if stock.status === 'Stop loss'}<span class="text-red-400">🛑</span>{/if}
+									</div>
+									<div class="text-white/40">{stock.shortName}</div>
+									<div class="text-white/20">{stock.buyDate}</div>
+								</td>
+								<td class="px-3 py-2.5 text-right text-white/60">{stock.buyQty}</td>
+								<td class="px-3 py-2.5 text-right text-white/60">{formatINR(stock.buyAmt)}</td>
+								<td class="px-3 py-2.5 text-right text-white font-medium"
+									>{formatINR(stock.investedVal)}</td
+								>
+								<td class="px-3 py-2.5 text-right text-white/60">{stock.soldFrequency || 0}x</td>
+								<td class="px-3 py-2.5 text-right text-white/60">{stock.qtyHeld}</td>
+								<td class="px-3 py-2.5 text-right">
+									{#if isOwnStocks}
+										<button
+											onclick={() => openRate(stock)}
+											class="text-blue-400 hover:text-blue-300 font-medium transition"
+										>
+											{formatINR(stock.todaysRate)}
+										</button>
+									{:else}
+										<span class="text-blue-400 font-medium">{formatINR(stock.todaysRate)}</span>
+									{/if}
+								</td>
+								<td class="px-3 py-2.5 text-right text-white font-medium"
+									>{formatINR(stock.currentVal)}</td
+								>
+								<td class="px-3 py-2.5 text-right font-semibold {plClass(stock.plPercent)}"
+									>{stock.plPercent?.toFixed(2)}%</td
+								>
+								<td class="px-3 py-2.5 text-right text-red-400">{formatINR(stock.stopLoss)}</td>
+								<td class="px-3 py-2.5 text-right text-blue-400">{formatINR(stock.target)}</td>
+								<td class="px-3 py-2.5 text-center">
+									<span class="px-2 py-0.5 rounded-full text-xs {statusClass(stock.status)}"
+										>{stock.status}</span
+									>
+								</td>
+								<td class="px-3 py-2.5 text-right {plClass(stock.diffPL)}"
+									>{formatINR(stock.diffPL)}</td
+								>
+								<td class="px-3 py-2.5 text-right text-white/60"
+									>{Math.floor(stock.qtyNeedToSell ?? 0)}</td
+								>
+								<td class="px-3 py-2.5 text-right text-white/60">{stock.soldQty || 0}</td>
+								<td class="px-3 py-2.5 text-right text-white/30">{stock.soldDate || '-'}</td>
+								<td class="px-3 py-2.5 text-center">
+									<button
+										onclick={() =>
+											isOwnStocks &&
+											updateStock(
+												stock.id,
+												{ releaseStatus: !stock.releaseStatus },
+												viewingUid || undefined
+											)}
+										class="w-5 h-5 rounded border-2 flex items-center justify-center mx-auto transition
+										{stock.releaseStatus
+											? 'bg-emerald-500 border-emerald-500'
+											: 'border-white/20 hover:border-emerald-400'}"
+									>
+										{#if stock.releaseStatus}
+											<svg
+												class="w-3 h-3 text-white"
+												fill="none"
+												viewBox="0 0 24 24"
+												stroke="currentColor"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="3"
+													d="M5 13l4 4L19 7"
+												/>
+											</svg>
+										{/if}
+									</button>
+								</td>
+								{#if isOwnStocks}
+									<td class="px-3 py-2.5">
+										<div class="flex flex-col gap-1 items-stretch min-w-[56px]">
+											<button
+												onclick={() => openBuyMore(stock)}
+												class="text-xs bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 px-2 py-1 rounded-lg transition text-center"
+												>+ Buy</button
+											>
+											<button
+												onclick={() => openSell(stock)}
+												class="text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded-lg transition text-center"
+												>Sell</button
+											>
+											<button
+												onclick={() => deleteStock(stock.id, viewingUid || undefined)}
+												class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-2 py-1 rounded-lg transition text-center"
+												>Del</button
+											>
+										</div>
+									</td>
+								{/if}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Mobile cards -->
+			<div class="md:hidden bg-[#111] rounded-2xl overflow-hidden">
+				{#each filteredStocks as stock}
+					<StockCard
+						{stock}
+						{isOwnStocks}
+						{expandedRow}
+						{formatINR}
+						{plClass}
+						{statusClass}
+						{viewingUid}
+						onToggle={(id) => {
+							expandedRow = expandedRow === id ? null : id;
+						}}
+						onBuyMore={openBuyMore}
+						onSell={openSell}
+						onDelete={(s) => deleteStock(s.id, viewingUid || undefined)}
+						onRateClick={openRate}
+						onReleaseToggle={(s) =>
+							isOwnStocks &&
+							updateStock(s.id, { releaseStatus: !s.releaseStatus }, viewingUid || undefined)}
+					/>
+				{/each}
+			</div>
+		{/if}
+	</div>
+</div>
+
+<!-- Modals -->
+<StockModals
+	bind:showAddModal
+	bind:showSellModal
+	bind:showRateModal
+	bind:showTargetsPanel
+	bind:isBuyMore
+	bind:selectedStock
+	bind:sellQty
+	bind:sellRate
+	bind:sellDate
+	bind:newRate
+	bind:form
+	{targetStocks}
+	{isOwnStocks}
+	{formatINR}
+	{plClass}
+	{statusClass}
+	onAddStock={handleAddStock}
+	onSell={handleSell}
+	onRateUpdate={handleRateUpdate}
+	onSellFromTargets={sellFromTargets}
+/>
+</file>
+
+</files>

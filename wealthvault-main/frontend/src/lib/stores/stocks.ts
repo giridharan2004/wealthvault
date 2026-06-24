@@ -91,8 +91,11 @@ export async function addStock(data: Partial<Stock>, uid?: string): Promise<void
   const id = Date.now().toString();
   await setDoc(doc(db, 'users', targetUid, 'stocks', id), {
     ...calculated, id,
-    soldFrequency: 0, soldQty: 0, soldDate: '',
-    releaseStatus: false, lastUpdated: new Date().toISOString()
+    soldFrequency: data.soldFrequency ?? 0,
+    soldQty: data.soldQty ?? 0,
+    soldDate: data.soldDate ?? '',
+    releaseStatus: data.releaseStatus ?? false,
+    lastUpdated: new Date().toISOString()
   });
   await loadStocks(targetUid);
 }
@@ -110,7 +113,7 @@ export async function updateStock(id: string, data: Partial<Stock>, uid?: string
   await loadStocks(targetUid);
 }
 
-export async function sellStock(id: string, qty: number, uid?: string): Promise<void> {
+export async function sellStock(id: string, qty: number, uid?: string, _sellRate?: number, sellDate?: string): Promise<void> {
   const currentUser = get(user);
   const targetUid = uid || currentUser?.uid;
   if (!targetUid) return;
@@ -122,7 +125,7 @@ export async function sellStock(id: string, qty: number, uid?: string): Promise<
     ...existing,
     soldQty: (existing.soldQty || 0) + qty,
     soldFrequency: (existing.soldFrequency || 0) + 1,
-    soldDate: new Date().toISOString().split('T')[0]
+    soldDate: sellDate || new Date().toISOString().split('T')[0]
   });
   await updateDoc(ref, { ...updated, lastUpdated: new Date().toISOString() });
   await loadStocks(targetUid);
